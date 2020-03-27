@@ -34,17 +34,17 @@ public class BenchmarkSuiteRunner<T> {
         this.benchmarkRunner = benchmarkRunner;
     }
 
-    public BenchmarkSuiteRunner arguments(T... arguments) {
+    public BenchmarkSuiteRunner<T> arguments(T... arguments) {
         this.arguments = Arrays.asList(arguments);
         return this;
     }
 
-    public BenchmarkSuiteRunner arguments(Collection<T> arguments) {
+    public BenchmarkSuiteRunner<T> arguments(Collection<T> arguments) {
         this.arguments = arguments;
         return this;
     }
 
-    public BenchmarkSuiteRunner suite(String name, Consumer<T> snippet) {
+    public BenchmarkSuiteRunner<T> suite(String name, Consumer<T> snippet) {
         suiteNames.add(name);
         suiteSnippets.add(snippet);
         return this;
