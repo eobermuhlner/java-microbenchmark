@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class BenchmarkSuiteRunner<T> {
@@ -32,6 +34,37 @@ public class BenchmarkSuiteRunner<T> {
     public BenchmarkSuiteRunner(ResultPrinter resultPrinter, BenchmarkRunner benchmarkRunner) {
         this.resultPrinter = resultPrinter;
         this.benchmarkRunner = benchmarkRunner;
+    }
+
+    public BenchmarkSuiteRunner<T> forArguments(int startValue, int exclEndValue, Function<Integer, T> converter) {
+        return forArguments(startValue, exclEndValue, startValue<exclEndValue ? 1 : -1, converter);
+    }
+
+    public BenchmarkSuiteRunner<T> forArguments(int startValue, int exclEndValue, int step, Function<Integer, T> converter) {
+        List<T> arguments = new ArrayList<>();
+
+        for (int i = startValue; i < exclEndValue; i+=step) {
+            T value = converter.apply(i);
+            arguments.add(value);
+        }
+
+        arguments(arguments);
+
+        return this;
+    }
+
+    public BenchmarkSuiteRunner<T> forArguments(T startValue, Predicate<T> condition, Function<T, T> stepFunction) {
+        List<T> arguments = new ArrayList<>();
+
+        T value = startValue;
+        while (condition.test(value)) {
+            arguments.add(value);
+            value = stepFunction.apply(value);
+        }
+
+        arguments(arguments);
+
+        return this;
     }
 
     public BenchmarkSuiteRunner<T> arguments(T... arguments) {
@@ -71,10 +104,10 @@ public class BenchmarkSuiteRunner<T> {
             ResultPrinter printer = new CompositeResultPrinter(
                     new StdoutResultPrinter(),
                     new CsvResultPrinter(out));
-            IntegerBenchmarkSuiteRunner benchmarkSuiteRunner = new IntegerBenchmarkSuiteRunner(printer);
+            BenchmarkSuiteRunner<Integer> benchmarkSuiteRunner = new BenchmarkSuiteRunner<>(printer);
 
             benchmarkSuiteRunner
-                    .forLoop(0, 1000, 100)
+                    .forArguments(0, i -> i < 100, i -> i+10)
                     .suite("nothing", millis -> {})
                     .suite("sleep", millis -> {
                         try {
