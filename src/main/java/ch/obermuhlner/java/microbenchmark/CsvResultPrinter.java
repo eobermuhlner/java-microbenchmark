@@ -1,7 +1,10 @@
 package ch.obermuhlner.java.microbenchmark;
 
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CsvResultPrinter implements ResultPrinter {
     private final PrintWriter out;
@@ -10,6 +13,8 @@ public class CsvResultPrinter implements ResultPrinter {
 
     private List<String> names;
     private List<String> arguments;
+
+    private Map<List<String>, Double> resultMap = new HashMap<>();
 
     public CsvResultPrinter() {
         this.out = new PrintWriter(System.out);
@@ -22,13 +27,6 @@ public class CsvResultPrinter implements ResultPrinter {
     @Override
     public void printNames(List<String> names) {
         this.names = names;
-
-        out.print(argumentName);
-        for (int i = 0; i < names.size(); i++) {
-            out.print(", ");
-            out.print(names.get(i));
-        }
-        out.println();
     }
 
     @Override
@@ -38,14 +36,27 @@ public class CsvResultPrinter implements ResultPrinter {
 
     @Override
     public void printSuite(String name, String argument, double seconds) {
-        if (name.equals(names.get(0))) {
-            out.print(argument);
+        resultMap.put(Arrays.asList(name, argument), seconds);
+    }
+
+    @Override
+    public void printFinished() {
+        out.print(String.format("%-40s", argumentName));
+        for (String name : names) {
+            out.print(", ");
+            out.print(String.format("%16s", name));
         }
+        out.println();
 
-        out.print(", ");
-        out.print(seconds);
-
-        if (name.equals(names.get(names.size() - 1))) {
+        for (String argument : arguments) {
+            out.print(String.format("%-40s", argument));
+            for (String name : names) {
+                out.print(", ");
+                Double seconds = resultMap.get(Arrays.asList(name, argument));
+                if (seconds != null) {
+                    out.print(String.format("%16.8f", seconds));
+                }
+            }
             out.println();
         }
     }

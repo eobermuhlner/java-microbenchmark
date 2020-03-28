@@ -8,4 +8,6 @@ public interface ResultPrinter {
     void printArguments(List<String> arguments);
 
     void printSuite(String name, String argument, double seconds);
+
+    void printFinished();
 }

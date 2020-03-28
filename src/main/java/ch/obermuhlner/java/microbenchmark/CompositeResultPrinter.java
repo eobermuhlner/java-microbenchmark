@@ -30,4 +30,11 @@ public class CompositeResultPrinter implements ResultPrinter {
             printer.printSuite(name, argument, seconds);
         }
     }
+
+    @Override
+    public void printFinished() {
+        for (ResultPrinter printer : printers) {
+            printer.printFinished();
+        }
+    }
 }

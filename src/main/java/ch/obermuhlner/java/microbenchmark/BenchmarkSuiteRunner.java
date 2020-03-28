@@ -62,6 +62,8 @@ public class BenchmarkSuiteRunner<T> {
                 resultPrinter.printSuite(name, String.valueOf(argument), result);
             }
         }
+
+        resultPrinter.printFinished();
     }
 
     public static void main(String[] args) {
@@ -72,7 +74,8 @@ public class BenchmarkSuiteRunner<T> {
             IntegerBenchmarkSuiteRunner benchmarkSuiteRunner = new IntegerBenchmarkSuiteRunner(printer);
 
             benchmarkSuiteRunner
-                    .forLoop(0, 5000, 500)
+                    .forLoop(0, 1000, 100)
+                    .suite("nothing", millis -> {})
                     .suite("sleep", millis -> {
                         try {
                             Thread.sleep(millis);

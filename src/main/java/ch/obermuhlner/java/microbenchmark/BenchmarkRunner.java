@@ -8,10 +8,21 @@ import java.util.function.Consumer;
 public class BenchmarkRunner {
     private static final double NANOS_PER_SECOND = 1_000_000_000;
 
-    private double allocatedSeconds = 1.0;
-    private double allocatedWarmupRatio = 0.1;
-    private int maxWarmupCount = 10000;
-    private long timeoutSeconds = 10;
+    private double allocatedSeconds;
+    private double allocatedWarmupRatio;
+    private int maxWarmupCount;
+    private long timeoutSeconds;
+
+    public BenchmarkRunner() {
+        this(1.0, 0.1, 10000, 10);
+    }
+
+    public BenchmarkRunner(double allocatedSeconds, double allocatedWarmupRatio, int maxWarmupCount, long timeoutSeconds) {
+        this.allocatedSeconds = allocatedSeconds;
+        this.allocatedWarmupRatio = allocatedWarmupRatio;
+        this.maxWarmupCount = maxWarmupCount;
+        this.timeoutSeconds = timeoutSeconds;
+    }
 
     public <T> double measure(Consumer<T> snippet, T argument) {
         double firstTime = measureWithTimeout(snippet, argument, 1);

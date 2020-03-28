@@ -16,4 +16,8 @@ public class StdoutResultPrinter implements ResultPrinter {
     public void printSuite(String name, String argument, double seconds) {
         System.out.println(String.format("%-40s %30s %10.6f", name, argument, seconds));
     }
+
+    @Override
+    public void printFinished() {
+    }
 }
