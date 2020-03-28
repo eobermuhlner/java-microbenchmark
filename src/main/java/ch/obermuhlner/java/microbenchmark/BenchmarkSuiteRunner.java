@@ -72,7 +72,7 @@ public class BenchmarkSuiteRunner<T> {
             IntegerBenchmarkSuiteRunner benchmarkSuiteRunner = new IntegerBenchmarkSuiteRunner(printer);
 
             benchmarkSuiteRunner
-                    .forLoop(0, 1000, 100)
+                    .forLoop(0, 5000, 500)
                     .suite("sleep", millis -> {
                         try {
                             Thread.sleep(millis);

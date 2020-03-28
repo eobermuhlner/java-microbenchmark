@@ -1,5 +1,8 @@
 package ch.obermuhlner.java.microbenchmark;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public class BenchmarkRunner {
@@ -8,9 +11,10 @@ public class BenchmarkRunner {
     private double allocatedSeconds = 1.0;
     private double allocatedWarmupRatio = 0.1;
     private int maxWarmupCount = 10000;
+    private long timeoutSeconds = 10;
 
     public <T> double measure(Consumer<T> snippet, T argument) {
-        double firstTime = measure(snippet, argument, 1);
+        double firstTime = measureWithTimeout(snippet, argument, 1);
         if (firstTime >= allocatedSeconds) {
             return firstTime;
         }
@@ -38,10 +42,33 @@ public class BenchmarkRunner {
         return measure(snippet, argument, measureRepeat);
     }
 
+    private <T> double measureWithTimeout(Consumer<T> snippet, T argument, int repeat) {
+        AtomicReference<Double> result = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        new Thread(() -> {
+            result.set(measure(snippet, argument, repeat));
+            latch.countDown();
+        }).start();
+
+        try {
+            if (latch.await(timeoutSeconds, TimeUnit.SECONDS)) {
+                return result.get();
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupt");
+        }
+
+        return Double.POSITIVE_INFINITY;
+    }
+
     public <T> double measure(Consumer<T> snippet, T argument, int repeat) {
         long startNanos = System.nanoTime();
         for (int i = 0; i < repeat; i++) {
-            snippet.accept(argument);
+            try {
+                snippet.accept(argument);
+            } catch (Exception ex) {
+                // ignore
+            }
         }
         long endNanos = System.nanoTime();
         double seconds = (endNanos - startNanos) / NANOS_PER_SECOND;
