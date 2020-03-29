@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BenchmarkSuiteRunner<T> {
 
@@ -41,11 +42,20 @@ public class BenchmarkSuiteRunner<T> {
     }
 
     public BenchmarkSuiteRunner<T> forArguments(int startValue, int exclEndValue, int step, Function<Integer, T> converter) {
+        return forArguments(startValue, i -> i < exclEndValue, i -> i + step, converter);
+    }
+
+    public BenchmarkSuiteRunner<T> forArguments(T startValue, Predicate<T> condition, Function<T, T> stepFunction) {
+        return forArguments(startValue, condition, stepFunction, t -> t);
+    }
+
+    public <A> BenchmarkSuiteRunner<T> forArguments(A startValue, Predicate<A> condition, Function<A, A> stepFunction, Function<A, T> converter) {
         List<T> arguments = new ArrayList<>();
 
-        for (int i = startValue; i < exclEndValue; i+=step) {
-            T value = converter.apply(i);
-            arguments.add(value);
+        A value = startValue;
+        while (condition.test(value)) {
+            arguments.add(converter.apply(value));
+            value = stepFunction.apply(value);
         }
 
         arguments(arguments);
@@ -53,18 +63,8 @@ public class BenchmarkSuiteRunner<T> {
         return this;
     }
 
-    public BenchmarkSuiteRunner<T> forArguments(T startValue, Predicate<T> condition, Function<T, T> stepFunction) {
-        List<T> arguments = new ArrayList<>();
-
-        T value = startValue;
-        while (condition.test(value)) {
-            arguments.add(value);
-            value = stepFunction.apply(value);
-        }
-
-        arguments(arguments);
-
-        return this;
+    public BenchmarkSuiteRunner<T> forStream(Stream<T> stream) {
+        return arguments(stream.collect(Collectors.toList()));
     }
 
     public BenchmarkSuiteRunner<T> arguments(T... arguments) {
