@@ -37,19 +37,19 @@ public class BenchmarkSuiteRunner<T> {
         this.benchmarkRunner = benchmarkRunner;
     }
 
-    public BenchmarkSuiteRunner<T> forArguments(int startValue, int exclEndValue, Function<Integer, T> converter) {
-        return forArguments(startValue, exclEndValue, startValue<exclEndValue ? 1 : -1, converter);
+    public BenchmarkSuiteRunner<T> forLoop(int startValue, int exclEndValue, Function<Integer, T> converter) {
+        return forLoop(startValue, exclEndValue, startValue<exclEndValue ? 1 : -1, converter);
     }
 
-    public BenchmarkSuiteRunner<T> forArguments(int startValue, int exclEndValue, int step, Function<Integer, T> converter) {
-        return forArguments(startValue, i -> i < exclEndValue, i -> i + step, converter);
+    public BenchmarkSuiteRunner<T> forLoop(int startValue, int exclEndValue, int step, Function<Integer, T> converter) {
+        return forLoop(startValue, i -> i < exclEndValue, i -> i + step, converter);
     }
 
-    public BenchmarkSuiteRunner<T> forArguments(T startValue, Predicate<T> condition, Function<T, T> stepFunction) {
-        return forArguments(startValue, condition, stepFunction, t -> t);
+    public BenchmarkSuiteRunner<T> forLoop(T startValue, Predicate<T> condition, Function<T, T> stepFunction) {
+        return forLoop(startValue, condition, stepFunction, t -> t);
     }
 
-    public <A> BenchmarkSuiteRunner<T> forArguments(A startValue, Predicate<A> condition, Function<A, A> stepFunction, Function<A, T> converter) {
+    public <A> BenchmarkSuiteRunner<T> forLoop(A startValue, Predicate<A> condition, Function<A, A> stepFunction, Function<A, T> converter) {
         List<T> arguments = new ArrayList<>();
 
         A value = startValue;
@@ -58,21 +58,21 @@ public class BenchmarkSuiteRunner<T> {
             value = stepFunction.apply(value);
         }
 
-        arguments(arguments);
+        forArguments(arguments);
 
         return this;
     }
 
     public BenchmarkSuiteRunner<T> forStream(Stream<T> stream) {
-        return arguments(stream.collect(Collectors.toList()));
+        return forArguments(stream.collect(Collectors.toList()));
     }
 
-    public BenchmarkSuiteRunner<T> arguments(T... arguments) {
+    public BenchmarkSuiteRunner<T> forArguments(T... arguments) {
         this.arguments = Arrays.asList(arguments);
         return this;
     }
 
-    public BenchmarkSuiteRunner<T> arguments(Collection<T> arguments) {
+    public BenchmarkSuiteRunner<T> forArguments(Collection<T> arguments) {
         this.arguments = arguments;
         return this;
     }
@@ -107,7 +107,7 @@ public class BenchmarkSuiteRunner<T> {
             BenchmarkSuiteRunner<Integer> benchmarkSuiteRunner = new BenchmarkSuiteRunner<>(printer);
 
             benchmarkSuiteRunner
-                    .forArguments(0, i -> i < 100, i -> i+10)
+                    .forLoop(0, i -> i < 100, i -> i+10)
                     .suite("nothing", millis -> {})
                     .suite("sleep", millis -> {
                         try {
