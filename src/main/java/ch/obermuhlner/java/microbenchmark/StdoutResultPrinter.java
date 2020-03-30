@@ -18,7 +18,7 @@ public class StdoutResultPrinter implements ResultPrinter {
 
     @Override
     public void printBenchmark(String name, String argument, double seconds) {
-        System.out.println(String.format("%-40s %30s %10.6f", name, argument, seconds));
+        System.out.println(String.format("%-40s %30s %16.1f", name, argument, seconds));
     }
 
     @Override

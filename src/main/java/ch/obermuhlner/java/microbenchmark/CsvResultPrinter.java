@@ -63,7 +63,7 @@ public class CsvResultPrinter implements ResultPrinter {
                 out.print(", ");
                 Double seconds = resultMap.get(Arrays.asList(name, argument));
                 if (seconds != null) {
-                    out.print(String.format("%16.8f", seconds));
+                    out.print(String.format("%16.1f", seconds));
                 }
             }
             out.println();
