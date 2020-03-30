@@ -17,6 +17,14 @@ public class CompositeResultPrinter implements ResultPrinter {
     }
 
     @Override
+    public void printDimensions(int count) {
+        for (ResultPrinter printer : printers) {
+            printer.printDimensions(count);
+        }
+    }
+
+
+    @Override
     public void printNames(List<String> names) {
         for (ResultPrinter printer : printers) {
             printer.printNames(names);
@@ -31,9 +39,9 @@ public class CompositeResultPrinter implements ResultPrinter {
     }
 
     @Override
-    public void printSuite(String name, String argument, double seconds) {
+    public void printBenchmark(String name, String argument, double seconds) {
         for (ResultPrinter printer : printers) {
-            printer.printSuite(name, argument, seconds);
+            printer.printBenchmark(name, argument, seconds);
         }
     }
 

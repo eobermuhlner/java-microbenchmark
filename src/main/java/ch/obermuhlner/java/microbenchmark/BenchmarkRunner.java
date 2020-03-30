@@ -3,6 +3,7 @@ package ch.obermuhlner.java.microbenchmark;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class BenchmarkRunner {
@@ -25,7 +26,15 @@ public class BenchmarkRunner {
     }
 
     public <T> double measure(Consumer<T> snippet, T argument) {
-        double firstTime = measureWithTimeout(snippet, argument, 1);
+        return measure(() -> snippet.accept(argument));
+    }
+
+    public <T> double measure(BiConsumer<T, T> snippet, T argument1, T argument2) {
+        return measure(() -> snippet.accept(argument1, argument2));
+    }
+
+    public double measure(Runnable snippet) {
+        double firstTime = measureWithTimeout(snippet, 1);
         if (firstTime >= allocatedSeconds) {
             return firstTime;
         }
@@ -33,7 +42,7 @@ public class BenchmarkRunner {
         double warmupSpentTime = firstTime;
         int warmupCount = 1;
         while (warmupSpentTime < allocatedSeconds * allocatedWarmupRatio && warmupCount < maxWarmupCount) {
-            double warmupTime = measure(snippet, argument, 1);
+            double warmupTime = measure(snippet, 1);
             warmupSpentTime += warmupTime;
             warmupCount++;
         }
@@ -50,14 +59,14 @@ public class BenchmarkRunner {
             measureRepeat = 1;
         }
 
-        return measure(snippet, argument, measureRepeat);
+        return measure(snippet, measureRepeat);
     }
 
-    private <T> double measureWithTimeout(Consumer<T> snippet, T argument, int repeat) {
+    private <T> double measureWithTimeout(Runnable snippet, int repeat) {
         AtomicReference<Double> result = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
         new Thread(() -> {
-            result.set(measure(snippet, argument, repeat));
+            result.set(measure(snippet, repeat));
             latch.countDown();
         }).start();
 
@@ -72,11 +81,11 @@ public class BenchmarkRunner {
         return Double.POSITIVE_INFINITY;
     }
 
-    public <T> double measure(Consumer<T> snippet, T argument, int repeat) {
+    public <T> double measure(Runnable snippet, int repeat) {
         long startNanos = System.nanoTime();
         for (int i = 0; i < repeat; i++) {
             try {
-                snippet.accept(argument);
+                snippet.run();
             } catch (Exception ex) {
                 // ignore
             }

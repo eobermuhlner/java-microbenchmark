@@ -21,6 +21,19 @@ public class CsvResultPrinter implements ResultPrinter {
     }
 
     @Override
+    public void printDimensions(int count) {
+        switch (count) {
+            case 1:
+                break;
+            case 2:
+                out.println("# csv2chart.chart=heat");
+                out.println("# csv2chart.header-column");
+                out.println("# csv2chart.header-row");
+                break;
+        }
+    }
+
+    @Override
     public void printNames(List<String> names) {
         this.names = names;
     }
@@ -31,7 +44,7 @@ public class CsvResultPrinter implements ResultPrinter {
     }
 
     @Override
-    public void printSuite(String name, String argument, double seconds) {
+    public void printBenchmark(String name, String argument, double seconds) {
         resultMap.put(Arrays.asList(name, argument), seconds);
     }
 

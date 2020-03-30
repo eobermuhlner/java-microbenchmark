@@ -5,6 +5,10 @@ import java.util.List;
 public class StdoutResultPrinter implements ResultPrinter {
 
     @Override
+    public void printDimensions(int count) {
+    }
+
+    @Override
     public void printNames(List<String> names) {
     }
 
@@ -13,7 +17,7 @@ public class StdoutResultPrinter implements ResultPrinter {
     }
 
     @Override
-    public void printSuite(String name, String argument, double seconds) {
+    public void printBenchmark(String name, String argument, double seconds) {
         System.out.println(String.format("%-40s %30s %10.6f", name, argument, seconds));
     }
 
