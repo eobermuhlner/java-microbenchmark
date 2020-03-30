@@ -23,6 +23,8 @@ public class BenchmarkSuiteRunner<T> {
     private List<T> arguments1;
     private List<T> arguments2;
     private List<String> names = new ArrayList<>();
+    private List<String> arguments1Names = new ArrayList<>();
+    private List<String> arguments2Names = new ArrayList<>();
     private List<Consumer<T>> benchmarkSnippets1 = new ArrayList<>();
     private List<BiConsumer<T, T>> benchmarkSnippets2 = new ArrayList<>();
 
@@ -58,14 +60,16 @@ public class BenchmarkSuiteRunner<T> {
 
     public <A> BenchmarkSuiteRunner<T> forLoop(A startValue, Predicate<A> condition, Function<A, A> stepFunction, Function<A, T> converter) {
         List<T> arguments = new ArrayList<>();
+        List<String> argumentsNames = new ArrayList<>();
 
         A value = startValue;
         while (condition.test(value)) {
             arguments.add(converter.apply(value));
+            argumentsNames.add(String.valueOf(value));
             value = stepFunction.apply(value);
         }
 
-        return forArguments(arguments);
+        return forArguments(arguments, argumentsNames);
     }
 
     public BenchmarkSuiteRunner<T> forStream(Stream<T> stream) {
@@ -77,12 +81,19 @@ public class BenchmarkSuiteRunner<T> {
     }
 
     public BenchmarkSuiteRunner<T> forArguments(List<T> arguments) {
+        List<String> argumentsNames = arguments.stream().map(String::valueOf).collect(Collectors.toList());
+        return forArguments(arguments, argumentsNames);
+    }
+
+    public BenchmarkSuiteRunner<T> forArguments(List<T> arguments, List<String> argumentsNames) {
         if (arguments1 == null) {
             arguments1 = arguments;
+            arguments1Names = argumentsNames;
             return this;
         }
         if (arguments2 == null) {
             arguments2 = arguments;
+            arguments2Names = argumentsNames;
             return this;
         }
         throw new RuntimeException("Too many argument dimensions");
@@ -115,14 +126,16 @@ public class BenchmarkSuiteRunner<T> {
     private void runSnippets1() {
         resultPrinter.printDimensions(1);
         resultPrinter.printNames(names);
-        resultPrinter.printArguments(arguments1.stream().map(String::valueOf).collect(Collectors.toList()));
+        resultPrinter.printArguments(arguments1Names);
 
         for (int i = 0; i < names.size(); i++) {
             String name = names.get(i);
             Consumer<T> snippet = benchmarkSnippets1.get(i);
-            for (T argument : arguments1) {
+            for (int j = 0; j < arguments1.size(); j++) {
+                T argument = arguments1.get(j);
+                String argumentName = arguments1Names.get(j);
                 double result = benchmarkRunner.measure(snippet, argument);
-                resultPrinter.printBenchmark(name, String.valueOf(argument), result);
+                resultPrinter.printBenchmark(name, argumentName, result);
             }
         }
 
@@ -135,15 +148,20 @@ public class BenchmarkSuiteRunner<T> {
         }
 
         resultPrinter.printDimensions(2);
-        resultPrinter.printNames(arguments1.stream().map(String::valueOf).collect(Collectors.toList()));
-        resultPrinter.printArguments(arguments2.stream().map(String::valueOf).collect(Collectors.toList()));
+        resultPrinter.printNames(arguments1Names);
+        resultPrinter.printArguments(arguments2Names);
 
         BiConsumer<T, T> snippet = benchmarkSnippets2.get(0);
 
-        for (T argument1 : arguments1) {
-            for (T argument2 : arguments2) {
+        for (int i = 0; i < arguments1.size(); i++) {
+            T argument1 = arguments1.get(i);
+            String argument1Name = arguments1Names.get(i);
+            for (int j = 0; j < arguments2.size(); j++) {
+                T argument2 = arguments2.get(j);
+                String argument2Name = arguments2Names.get(j);
+
                 double result = benchmarkRunner.measure(snippet, argument1, argument2);
-                resultPrinter.printBenchmark(String.valueOf(argument1), String.valueOf(argument2), result);
+                resultPrinter.printBenchmark(argument1Name, argument2Name, result);
             }
         }
 
