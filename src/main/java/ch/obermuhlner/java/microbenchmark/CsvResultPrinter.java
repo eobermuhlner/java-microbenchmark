@@ -16,10 +16,6 @@ public class CsvResultPrinter implements ResultPrinter {
 
     private Map<List<String>, Double> resultMap = new HashMap<>();
 
-    public CsvResultPrinter() {
-        this.out = new PrintWriter(System.out);
-    }
-
     public CsvResultPrinter(PrintWriter out) {
         this.out = out;
     }
@@ -59,5 +55,10 @@ public class CsvResultPrinter implements ResultPrinter {
             }
             out.println();
         }
+    }
+
+    @Override
+    public void close() {
+        out.close();
     }
 }

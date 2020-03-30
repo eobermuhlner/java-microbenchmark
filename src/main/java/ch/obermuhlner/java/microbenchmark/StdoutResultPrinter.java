@@ -20,4 +20,8 @@ public class StdoutResultPrinter implements ResultPrinter {
     @Override
     public void printFinished() {
     }
+
+    @Override
+    public void close() {
+    }
 }

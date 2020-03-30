@@ -1,13 +1,19 @@
 package ch.obermuhlner.java.microbenchmark;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CompositeResultPrinter implements ResultPrinter {
 
-    private final ResultPrinter[] printers;
+    private final List<ResultPrinter> printers = new ArrayList<>();
 
     public CompositeResultPrinter(ResultPrinter... printers) {
-        this.printers = printers;
+        this.printers.addAll(Arrays.asList(printers));
+    }
+
+    public void addResultPrinter(ResultPrinter resultPrinter) {
+        printers.add(resultPrinter);
     }
 
     @Override
@@ -35,6 +41,13 @@ public class CompositeResultPrinter implements ResultPrinter {
     public void printFinished() {
         for (ResultPrinter printer : printers) {
             printer.printFinished();
+        }
+    }
+
+    @Override
+    public void close() {
+        for (ResultPrinter printer : printers) {
+            printer.close();
         }
     }
 }

@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 public class BenchmarkSuiteRunner<T> {
 
-    private final ResultPrinter resultPrinter;
+    private final CompositeResultPrinter resultPrinter;
 
     private final BenchmarkRunner benchmarkRunner;
 
@@ -25,16 +25,21 @@ public class BenchmarkSuiteRunner<T> {
     private List<Consumer<T>> suiteSnippets = new ArrayList<>();
 
     public BenchmarkSuiteRunner() {
-        this(new StdoutResultPrinter());
+        this(new BenchmarkRunner());
     }
 
-    public BenchmarkSuiteRunner(ResultPrinter resultPrinter) {
-        this(resultPrinter, new BenchmarkRunner());
-    }
-
-    public BenchmarkSuiteRunner(ResultPrinter resultPrinter, BenchmarkRunner benchmarkRunner) {
-        this.resultPrinter = resultPrinter;
+    public BenchmarkSuiteRunner(BenchmarkRunner benchmarkRunner) {
         this.benchmarkRunner = benchmarkRunner;
+        resultPrinter = new CompositeResultPrinter(new StdoutResultPrinter());
+    }
+
+    public BenchmarkSuiteRunner<T> csvReport(String fileName) {
+        try {
+            resultPrinter.addResultPrinter(new CsvResultPrinter(new PrintWriter(new BufferedWriter(new FileWriter(fileName)))));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
     }
 
     public BenchmarkSuiteRunner<T> forLoop(int startValue, int exclEndValue, Function<Integer, T> converter) {
@@ -77,47 +82,45 @@ public class BenchmarkSuiteRunner<T> {
         return this;
     }
 
-    public BenchmarkSuiteRunner<T> suite(String name, Consumer<T> snippet) {
+    public BenchmarkSuiteRunner<T> benchmark(String name, Consumer<T> snippet) {
         suiteNames.add(name);
         suiteSnippets.add(snippet);
         return this;
     }
 
     public void run() {
-        resultPrinter.printNames(suiteNames);
-        resultPrinter.printArguments(arguments.stream().map(String::valueOf).collect(Collectors.toList()));
+        try {
+            resultPrinter.printNames(suiteNames);
+            resultPrinter.printArguments(arguments.stream().map(String::valueOf).collect(Collectors.toList()));
 
-        for (int i = 0; i < suiteNames.size(); i++) {
-            String name = suiteNames.get(i);
-            Consumer<T> snippet = suiteSnippets.get(i);
-            for (T argument : arguments) {
-                double result = benchmarkRunner.measure(snippet, argument);
-                resultPrinter.printSuite(name, String.valueOf(argument), result);
+            for (int i = 0; i < suiteNames.size(); i++) {
+                String name = suiteNames.get(i);
+                Consumer<T> snippet = suiteSnippets.get(i);
+                for (T argument : arguments) {
+                    double result = benchmarkRunner.measure(snippet, argument);
+                    resultPrinter.printSuite(name, String.valueOf(argument), result);
+                }
             }
-        }
 
-        resultPrinter.printFinished();
+            resultPrinter.printFinished();
+        } finally {
+            resultPrinter.close();
+        }
     }
 
     public static void main(String[] args) {
-        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("sleep.csv")))) {
-            ResultPrinter printer = new CompositeResultPrinter(
-                    new StdoutResultPrinter(),
-                    new CsvResultPrinter(out));
-            BenchmarkSuiteRunner<Integer> benchmarkSuiteRunner = new BenchmarkSuiteRunner<>(printer);
+        BenchmarkSuiteRunner<Integer> benchmarkSuiteRunner = new BenchmarkSuiteRunner<>();
 
-            benchmarkSuiteRunner
-                    .forLoop(0, i -> i < 100, i -> i+10)
-                    .suite("nothing", millis -> {})
-                    .suite("sleep", millis -> {
-                        try {
-                            Thread.sleep(millis);
-                        } catch (InterruptedException e) {
-                        }
-                    })
-                    .run();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        benchmarkSuiteRunner
+                .csvReport("sleep.csv")
+                .forLoop(0, i -> i < 100, i -> i+10)
+                .benchmark("nothing", millis -> {})
+                .benchmark("sleep", millis -> {
+                    try {
+                        Thread.sleep(millis);
+                    } catch (InterruptedException e) {
+                    }
+                })
+                .run();
     }
 }
