@@ -65,18 +65,22 @@ public class BenchmarkRunner {
     private <T> double measureWithTimeout(Runnable snippet, int repeat) {
         AtomicReference<Double> result = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             result.set(measure(snippet, repeat));
             latch.countDown();
-        }).start();
+        });
+        thread.start();
 
         try {
             if (latch.await(timeoutSeconds, TimeUnit.SECONDS)) {
                 return result.get();
             }
         } catch (InterruptedException e) {
+            Thread.interrupted();
             throw new RuntimeException("Interrupt");
         }
+
+        thread.interrupt();
 
         return Double.POSITIVE_INFINITY;
     }
