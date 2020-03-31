@@ -5,6 +5,8 @@ import ch.obermuhlner.java.microbenchmark.annotation.BenchmarkArgument;
 import ch.obermuhlner.java.microbenchmark.annotation.BenchmarkSuite;
 
 import java.lang.reflect.*;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -21,12 +23,17 @@ public class BenchmarkClassRunner {
     private static <C> void runClassInternal(Class<C> clazz) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         String suiteName = clazz.getSimpleName();
 
+        BenchmarkRunner benchmarkRunner = new BenchmarkRunner();
+
         BenchmarkSuite suiteAnnotation = clazz.getAnnotation(BenchmarkSuite.class);
         if (suiteAnnotation != null) {
             if (suiteAnnotation.value() != null && !suiteAnnotation.value().equals("")) {
                 suiteName = suiteAnnotation.value();
             }
+            benchmarkRunner.allocatedMeasureSeconds(suiteAnnotation.allocatedSeconds());
         }
+
+        benchmarkRunner.csvReport(suiteName + ".csv");
 
         C instance;
         Constructor<C> constructor = clazz.getConstructor();
@@ -49,9 +56,6 @@ public class BenchmarkClassRunner {
                 indexToArgumentsMap.put(annotation.value(), argument);
             }
         }
-
-        BenchmarkRunner benchmarkRunner = new BenchmarkRunner();
-        benchmarkRunner.csvReport(suiteName + ".csv");
 
         List<Integer> sortIndexes = new ArrayList<>(indexToArgumentsMap.keySet());
         Collections.sort(sortIndexes);
@@ -112,14 +116,24 @@ public class BenchmarkClassRunner {
         benchmarkRunner.run();
     }
 
-    @BenchmarkSuite
+    @BenchmarkSuite(allocatedSeconds = 1)
     public static class ExampleBenchmark {
+        private BigDecimal value = BigDecimal.valueOf(1.23456);
+        private BigDecimal value2 = BigDecimal.valueOf(9.87654);
         @BenchmarkArgument
-        public int[] arguments = { 0, 10, 20, 30, 40, 50 };
+        public List<BigDecimal> arguments2() {
+            List<BigDecimal> result = new ArrayList<>();
+            BigDecimal i = BigDecimal.valueOf(0);
+            while (i.compareTo(BigDecimal.valueOf(100)) < 0) {
+                result.add(i);
+                i = i.add(BigDecimal.valueOf(0.1));
+            }
+            return result;
+        }
 
         @Benchmark
-        public void sleep(int millis) throws InterruptedException {
-            Thread.sleep(millis);
+        public void divide(BigDecimal x) throws InterruptedException {
+            value2.divide(value, MathContext.DECIMAL128);
         }
     }
 
@@ -142,6 +156,6 @@ public class BenchmarkClassRunner {
 
     public static void main(String[] args) {
         BenchmarkClassRunner.runClass(ExampleBenchmark.class);
-        BenchmarkClassRunner.runClass(ExampleBenchmark2.class);
+        //BenchmarkClassRunner.runClass(ExampleBenchmark2.class);
     }
 }

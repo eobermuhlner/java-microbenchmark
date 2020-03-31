@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BenchmarkSuite {
     String value() default "";
+    double allocatedSeconds() default 1.0;
 }
