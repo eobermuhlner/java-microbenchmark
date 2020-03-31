@@ -1,4 +1,4 @@
-package ch.obermuhlner.java.microbenchmark;
+package ch.obermuhlner.java.microbenchmark.printer;
 
 import java.io.PrintWriter;
 import java.util.Arrays;

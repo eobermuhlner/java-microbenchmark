@@ -1,9 +1,10 @@
-package ch.obermuhlner.java.microbenchmark;
+package ch.obermuhlner.java.microbenchmark.runner;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import ch.obermuhlner.java.microbenchmark.printer.CompositeResultPrinter;
+import ch.obermuhlner.java.microbenchmark.printer.CsvResultPrinter;
+import ch.obermuhlner.java.microbenchmark.printer.SimpleResultPrinter;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +28,7 @@ public class BenchmarkRunner<T> {
     private double allocatedWarmupSeconds = 0.1;
     private int maxWarmupCount = 10000;
     private long timeoutSeconds = 10;
+    private boolean measureFirstTimeOnly = false;
 
     private int innerMeasurementCount = 5;
 
@@ -39,7 +41,12 @@ public class BenchmarkRunner<T> {
     private List<BiConsumer<T, T>> benchmarkSnippets2 = new ArrayList<>();
 
     public BenchmarkRunner() {
-        resultPrinter = new CompositeResultPrinter(new StdoutResultPrinter());
+        resultPrinter = new CompositeResultPrinter(new SimpleResultPrinter());
+    }
+
+    public BenchmarkRunner<T> measureFirstTimeOnly(boolean measureFirstTimeOnly) {
+        this.measureFirstTimeOnly = measureFirstTimeOnly;
+        return this;
     }
 
     public BenchmarkRunner<T> allocatedSeconds(double allocatedSeconds) {
@@ -65,6 +72,15 @@ public class BenchmarkRunner<T> {
     public BenchmarkRunner<T> csvReport(String fileName) {
         try {
             resultPrinter.addResultPrinter(new CsvResultPrinter(new PrintWriter(new BufferedWriter(new FileWriter(fileName)))));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    public BenchmarkRunner<T> printReport(String fileName) {
+        try {
+            resultPrinter.addResultPrinter(new SimpleResultPrinter(new PrintStream(fileName)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -203,8 +219,7 @@ public class BenchmarkRunner<T> {
 
     public double measure(Runnable snippet) {
         double firstTime = measureWithTimeout(snippet, 1);
-        if (firstTime >= allocatedSeconds * NANOS_PER_SECOND) {
-            System.out.println("First " + firstTime + " nanos");
+        if (measureFirstTimeOnly || firstTime >= allocatedSeconds * NANOS_PER_SECOND) {
             return firstTime;
         }
 
@@ -278,7 +293,7 @@ public class BenchmarkRunner<T> {
     public static void main(String[] args) {
         new BenchmarkRunner<Integer>()
                 .csvReport("sleep.csv")
-                .forLoop(0, i -> i < 100, i -> i+10)
+                .forLoop(0, i -> i < 50, i -> i+1)
                 .benchmark("nothing", millis -> {})
                 .benchmark("sleep", millis -> {
                     try {
