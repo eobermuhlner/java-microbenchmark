@@ -39,9 +39,23 @@ public class CompositeResultPrinter implements ResultPrinter {
     }
 
     @Override
-    public void printBenchmark(String name, String argument, double seconds) {
+    public void printInfoValue(String name, int value) {
         for (ResultPrinter printer : printers) {
-            printer.printBenchmark(name, argument, seconds);
+            printer.printInfoValue(name, value);
+        }
+    }
+
+    @Override
+    public void printInfoValue(String name, double value) {
+        for (ResultPrinter printer : printers) {
+            printer.printInfoValue(name, value);
+        }
+    }
+
+    @Override
+    public void printBenchmark(String name, String argument, double seconds, double[] allSeconds) {
+        for (ResultPrinter printer : printers) {
+            printer.printBenchmark(name, argument, seconds, allSeconds);
         }
     }
 

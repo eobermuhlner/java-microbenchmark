@@ -5,18 +5,13 @@ import ch.obermuhlner.java.microbenchmark.printer.CsvResultPrinter;
 import ch.obermuhlner.java.microbenchmark.printer.SimpleResultPrinter;
 
 import java.io.*;
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,7 +23,10 @@ public class BenchmarkRunner<T> {
 
     private double allocatedMeasureSeconds = 1.0;
     private double allocatedWarmupSeconds = 0.1;
-    private int maxWarmupCount = 100_000;
+    private int minWarmupCount = 1;
+    private int maxWarmupCount = 1_000_000_000;
+    private int minMeasureCount = 1;
+    private int maxMeasureCount = 1_000_000_000;
     private long timeoutSeconds = 10;
     private boolean measureFirstTimeOnly = false;
 
@@ -41,6 +39,7 @@ public class BenchmarkRunner<T> {
     private List<String> arguments2Names = new ArrayList<>();
     private List<Consumer<T>> benchmarkSnippets1 = new ArrayList<>();
     private List<BiConsumer<T, T>> benchmarkSnippets2 = new ArrayList<>();
+    private Function<double[], Double> resultStrategy = ResultStrategies.AVERAGE_LOWER_HALF;
 
     public BenchmarkRunner() {
         resultPrinter = new CompositeResultPrinter(new SimpleResultPrinter());
@@ -61,8 +60,36 @@ public class BenchmarkRunner<T> {
         return this;
     }
 
+    public BenchmarkRunner<T> warmupCount(int warmupCount) {
+        return minWarmupCount(warmupCount).maxWarmupCount(warmupCount);
+    }
+
+    public BenchmarkRunner<T> minWarmupCount(int minWarmupCount) {
+        this.minWarmupCount = minWarmupCount;
+        return this;
+    }
+
     public BenchmarkRunner<T> maxWarmupCount(int maxWarmupCount) {
         this.maxWarmupCount = maxWarmupCount;
+        return this;
+    }
+
+    public BenchmarkRunner<T> measureCount(int measureCount) {
+        return minMeasureCount(measureCount).maxMeasureCount(measureCount);
+    }
+
+    public BenchmarkRunner<T> minMeasureCount(int minMeasureCount) {
+        this.minMeasureCount = minMeasureCount;
+        return this;
+    }
+
+    public BenchmarkRunner<T> maxMeasureCount(int maxMeasureCount) {
+        this.maxMeasureCount = maxMeasureCount;
+        return this;
+    }
+
+    public BenchmarkRunner<T> runCount(int runCount) {
+        this.runCount = runCount;
         return this;
     }
 
@@ -171,13 +198,13 @@ public class BenchmarkRunner<T> {
         resultPrinter.printNames(names);
         resultPrinter.printArguments(arguments1Names);
 
-        double[] warmupTimes = new double[names.size() * arguments1.size()];
+        WarmupInfo[] warmupInfos = new WarmupInfo[names.size() * arguments1.size()];
 
         for (int i = 0; i < names.size(); i++) {
             Consumer<T> snippet = benchmarkSnippets1.get(i);
             for (int j = 0; j < arguments1.size(); j++) {
                 T argument = arguments1.get(j);
-                warmupTimes[i+j*names.size()] = warmup(snippet, argument);
+                warmupInfos[i+j*names.size()] = warmup(snippet, argument);
             }
         }
 
@@ -187,9 +214,10 @@ public class BenchmarkRunner<T> {
             for (int j = 0; j < arguments1.size(); j++) {
                 T argument = arguments1.get(j);
                 String argumentName = arguments1Names.get(j);
-                double warmupTime = warmupTimes[i+j*names.size()];
-                double result = measure(snippet, argument, warmupTime);
-                resultPrinter.printBenchmark(name, argumentName, result);
+                WarmupInfo warmupInfo = warmupInfos[i+j*names.size()];
+                double[] results = measure(snippet, argument, warmupInfo.warmupCount, warmupInfo.warmupTime);
+                double result = resultStrategy.apply(results);
+                resultPrinter.printBenchmark(name, argumentName, result, results);
             }
         }
 
@@ -207,13 +235,13 @@ public class BenchmarkRunner<T> {
 
         BiConsumer<T, T> snippet = benchmarkSnippets2.get(0);
 
-        double[] warmupTimes = new double[names.size() * arguments1.size()];
+        WarmupInfo[] warmupInfos = new WarmupInfo[names.size() * arguments1.size()];
 
         for (int i = 0; i < arguments1.size(); i++) {
             T argument1 = arguments1.get(i);
             for (int j = 0; j < arguments2.size(); j++) {
                 T argument2 = arguments2.get(j);
-                warmupTimes[i+j*names.size()] = warmup(snippet, argument1, argument2);
+                warmupInfos[i+j*names.size()] = warmup(snippet, argument1, argument2);
             }
         }
 
@@ -224,53 +252,57 @@ public class BenchmarkRunner<T> {
                 T argument2 = arguments2.get(j);
                 String argument2Name = arguments2Names.get(j);
 
-                double warmupTime = warmupTimes[i+j*names.size()];
-                double result = measure(snippet, argument1, argument2, warmupTime);
-                resultPrinter.printBenchmark(argument1Name, argument2Name, result);
+                WarmupInfo warmupInfo = warmupInfos[i+j*names.size()];
+                double[] results = measure(snippet, argument1, argument2, warmupInfo.warmupCount, warmupInfo.warmupTime);
+                double result = resultStrategy.apply(results);
+                resultPrinter.printBenchmark(argument1Name, argument2Name, result, results);
             }
         }
 
         resultPrinter.printFinished();
     }
 
-    public double warmup(Consumer<T> snippet, T argument) {
+    private WarmupInfo warmup(Consumer<T> snippet, T argument) {
         return warmup(() -> snippet.accept(argument));
     }
 
-    public double measure(Consumer<T> snippet, T argument, double warmupTime) {
-        return measure(() -> snippet.accept(argument), warmupTime);
+    private double[] measure(Consumer<T> snippet, T argument, int warmupCount, double warmupTime) {
+        return measure(() -> snippet.accept(argument), warmupCount, warmupTime);
     }
 
-    public double warmup(BiConsumer<T, T> snippet, T argument1, T argument2) {
+    private WarmupInfo warmup(BiConsumer<T, T> snippet, T argument1, T argument2) {
         return warmup(() -> snippet.accept(argument1, argument2));
     }
 
-    public double measure(BiConsumer<T, T> snippet, T argument1, T argument2, double warmupTime) {
-        return measure(() -> snippet.accept(argument1, argument2), warmupTime);
+    private double[] measure(BiConsumer<T, T> snippet, T argument1, T argument2, int warmupCount, double warmupTime) {
+        return measure(() -> snippet.accept(argument1, argument2), warmupCount, warmupTime);
     }
 
-    public double warmup(Runnable snippet) {
+    private WarmupInfo warmup(Runnable snippet) {
         double firstTime = measureWithTimeout(snippet, 1);
         if (measureFirstTimeOnly || firstTime >= allocatedMeasureSeconds * NANOS_PER_SECOND) {
-            return firstTime;
+            return new WarmupInfo(1, firstTime);
         }
 
         double warmupSpentTime = firstTime;
         int warmupCount = 1;
-        while (warmupSpentTime < allocatedWarmupSeconds * NANOS_PER_SECOND && warmupCount < maxWarmupCount) {
+        while (warmupSpentTime < allocatedWarmupSeconds * NANOS_PER_SECOND && warmupCount >= minWarmupCount && warmupCount < maxWarmupCount) {
             double warmupTime = measure(snippet, 1);
             warmupSpentTime += warmupTime;
             warmupCount++;
         }
 
         double warmupAverageTime = warmupSpentTime / warmupCount;
-
-        return warmupAverageTime;
+        return new WarmupInfo(warmupCount, warmupAverageTime);
     }
 
-    public double measure(Runnable snippet, double warmupTime) {
-        if (measureFirstTimeOnly || warmupTime >= allocatedMeasureSeconds * NANOS_PER_SECOND) {
-            return warmupTime;
+    private double[] measure(Runnable snippet, int warmupCount, double warmupTime) {
+        if (measureFirstTimeOnly || (minMeasureCount == 1 && warmupTime >= allocatedMeasureSeconds * NANOS_PER_SECOND)) {
+            resultPrinter.printInfoValue("warmupCount", 0);
+            resultPrinter.printInfoValue("warmupTime", 0);
+            resultPrinter.printInfoValue("runCountTime", 1);
+            resultPrinter.printInfoValue("measurementCount", warmupCount);
+            return new double[] { warmupTime };
         }
 
         int measurementCount;
@@ -279,23 +311,26 @@ public class BenchmarkRunner<T> {
         } else {
             measurementCount = (int) (allocatedMeasureSeconds * NANOS_PER_SECOND / warmupTime);
         }
-        measurementCount = Math.max(1, measurementCount);
+        measurementCount = Math.max(minMeasureCount, measurementCount);
+        measurementCount = Math.min(maxMeasureCount, measurementCount);
 
         if (measurementCount >= runCount) {
-            int halfRunCount = Math.max(1, runCount / 2);
             double[] measurements = new double[runCount];
             int singleMeasurementCount = measurementCount / runCount;
+            resultPrinter.printInfoValue("warmupCount", warmupCount);
+            resultPrinter.printInfoValue("warmupTime", warmupTime);
+            resultPrinter.printInfoValue("runCountTime", runCount);
+            resultPrinter.printInfoValue("measurementCount", singleMeasurementCount);
             for (int i = 0; i < runCount; i++) {
                 measurements[i] = measure(snippet, singleMeasurementCount);
             }
-            Arrays.sort(measurements);
-            double totalMeasurement = 0;
-            for (int i = 0; i < halfRunCount; i++) {
-                totalMeasurement += measurements[i];
-            }
-            return totalMeasurement / halfRunCount;
+            return measurements;
         } else {
-            return measure(snippet, measurementCount);
+            resultPrinter.printInfoValue("warmupCount", warmupCount);
+            resultPrinter.printInfoValue("warmupTime", warmupTime);
+            resultPrinter.printInfoValue("runCountTime", 1);
+            resultPrinter.printInfoValue("measurementCount", measurementCount);
+            return new double[] { measure(snippet, measurementCount) };
         }
     }
 
@@ -322,7 +357,7 @@ public class BenchmarkRunner<T> {
         return Double.POSITIVE_INFINITY;
     }
 
-    public double measure(Runnable snippet, int repeat) {
+    private double measure(Runnable snippet, int repeat) {
         long startNanos = System.nanoTime();
         for (int i = 0; i < repeat; i++) {
             try {
@@ -336,41 +371,13 @@ public class BenchmarkRunner<T> {
         return nanos / repeat;
     }
 
-    public static void main(String[] args) {
-        BigDecimal value1 = BigDecimal.valueOf(1.23456);
-        BigDecimal value2 = BigDecimal.valueOf(9.87654);
+    private static class WarmupInfo {
+        public final int warmupCount;
+        public final double warmupTime;
 
-        new BenchmarkRunner<Integer>()
-                .csvReport("const.csv")
-                .allocatedMeasureSeconds(2)
-                .forLoop(0, 10, i -> i)
-                .benchmark("const", i -> {
-                    value2.divide(value1, MathContext.DECIMAL128);
-                })
-                .run();
-
-//        new BenchmarkRunner<Integer>()
-//                .csvReport("sleep.csv")
-//                .forLoop(0, i -> i < 50, i -> i+1)
-//                .benchmark("nothing", millis -> {})
-//                .benchmark("sleep", millis -> {
-//                    try {
-//                        Thread.sleep(millis);
-//                    } catch (InterruptedException e) {
-//                    }
-//                })
-//                .run();
-//
-//        new BenchmarkRunner<Integer>()
-//                .csvReport("sleep2.csv")
-//                .forLoop(0, i -> i <= 10, i -> i+1)
-//                .forLoop(0, i -> i <= 10, i -> i+1)
-//                .benchmark("sleep", (millis1, millis2) -> {
-//                    try {
-//                        Thread.sleep(millis1 + millis2);
-//                    } catch (InterruptedException e) {
-//                    }
-//                })
-//                .run();
+        public WarmupInfo(int warmupCount, double warmupTime) {
+            this.warmupCount = warmupCount;
+            this.warmupTime = warmupTime;
+        }
     }
 }

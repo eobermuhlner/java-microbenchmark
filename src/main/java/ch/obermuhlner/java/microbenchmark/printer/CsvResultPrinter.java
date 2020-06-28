@@ -44,7 +44,15 @@ public class CsvResultPrinter implements ResultPrinter {
     }
 
     @Override
-    public void printBenchmark(String name, String argument, double seconds) {
+    public void printInfoValue(String name, int value) {
+    }
+
+    @Override
+    public void printInfoValue(String name, double value) {
+    }
+
+    @Override
+    public void printBenchmark(String name, String argument, double seconds, double[] allSeconds) {
         resultMap.put(Arrays.asList(name, argument), seconds);
     }
 

@@ -9,7 +9,10 @@ public interface ResultPrinter extends AutoCloseable {
 
     void printArguments(List<String> arguments);
 
-    void printBenchmark(String name, String argument, double seconds);
+    void printInfoValue(String name, int value);
+    void printInfoValue(String name, double value);
+
+    void printBenchmark(String name, String argument, double seconds, double[] allSeconds);
 
     void printFinished();
 
