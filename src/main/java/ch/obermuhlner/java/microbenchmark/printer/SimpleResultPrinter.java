@@ -9,7 +9,7 @@ public class SimpleResultPrinter implements ResultPrinter {
 
     private final PrintStream out;
     private final boolean doClose;
-    private String statistics;
+    private boolean verbose = false;
 
     public SimpleResultPrinter() {
         this(System.out, false);
@@ -28,6 +28,10 @@ public class SimpleResultPrinter implements ResultPrinter {
         this.doClose = doClose;
     }
 
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
+
     @Override
     public void printDimensions(int count) {
     }
@@ -42,12 +46,16 @@ public class SimpleResultPrinter implements ResultPrinter {
 
     @Override
     public void printInfoValue(String name, int value) {
-        //out.println(String.format("%40s %30s %16s %s=%d", "", "", "", name, value));
+        if (verbose) {
+            out.println(String.format("%40s %30s %16s %s=%d", "", "", "", name, value));
+        }
     }
 
     @Override
     public void printInfoValue(String name, double value) {
-        //out.println(String.format("%40s %30s %16s %s=%f", "", "", "", name, value));
+        if (verbose) {
+            out.println(String.format("%40s %30s %16s %s=%f", "", "", "", name, value));
+        }
     }
 
     @Override

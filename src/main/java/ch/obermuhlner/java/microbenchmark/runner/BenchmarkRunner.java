@@ -40,9 +40,15 @@ public class BenchmarkRunner<T> {
     private List<Consumer<T>> benchmarkSnippets1 = new ArrayList<>();
     private List<BiConsumer<T, T>> benchmarkSnippets2 = new ArrayList<>();
     private Function<double[], Double> resultStrategy = ResultStrategies.AVERAGE_LOWER_HALF;
+    private SimpleResultPrinter simpleResultPrinter = new SimpleResultPrinter();
 
     public BenchmarkRunner() {
-        resultPrinter = new CompositeResultPrinter(new SimpleResultPrinter());
+        resultPrinter = new CompositeResultPrinter(simpleResultPrinter);
+    }
+
+    public BenchmarkRunner<T> verbose(boolean verbose) {
+        simpleResultPrinter.setVerbose(verbose);
+        return this;
     }
 
     public BenchmarkRunner<T> measureFirstTimeOnly(boolean measureFirstTimeOnly) {

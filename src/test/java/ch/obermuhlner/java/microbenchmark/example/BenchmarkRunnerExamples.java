@@ -19,6 +19,7 @@ public class BenchmarkRunnerExamples {
 //                .run();
 
         new BenchmarkRunner<Integer>()
+                .verbose(true)
                 .csvReport("busy.csv")
                 .allocatedMeasureSeconds(0.1)
                 .forLoop(0, 500, 10, i -> i)
