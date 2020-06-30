@@ -20,6 +20,10 @@ public class CsvResultPrinter implements ResultPrinter {
         this.out = out;
     }
 
+    public void setArgumentName(String argumentName) {
+        this.argumentName = argumentName;
+    }
+
     @Override
     public void printDimensions(int count) {
         switch (count) {

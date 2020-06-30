@@ -41,6 +41,7 @@ public class BenchmarkRunner<T> {
     private List<BiConsumer<T, T>> benchmarkSnippets2 = new ArrayList<>();
     private Function<double[], Double> resultStrategy = ResultStrategies.AVERAGE_LOWER_HALF;
     private SimpleResultPrinter simpleResultPrinter = new SimpleResultPrinter();
+    private CsvResultPrinter csvResultPrinter;
 
     public BenchmarkRunner() {
         resultPrinter = new CompositeResultPrinter(simpleResultPrinter);
@@ -106,7 +107,8 @@ public class BenchmarkRunner<T> {
 
     public BenchmarkRunner<T> csvReport(String fileName) {
         try {
-            resultPrinter.addResultPrinter(new CsvResultPrinter(new PrintWriter(new BufferedWriter(new FileWriter(fileName)))));
+            CsvResultPrinter csvResultPrinter = new CsvResultPrinter(new PrintWriter(new BufferedWriter(new FileWriter(fileName))));
+            resultPrinter.addResultPrinter(csvResultPrinter);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -118,6 +120,13 @@ public class BenchmarkRunner<T> {
             resultPrinter.addResultPrinter(new SimpleResultPrinter(new PrintStream(fileName)));
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+        return this;
+    }
+
+    public BenchmarkRunner<T> argumentName(String argumentName) {
+        if (csvResultPrinter != null) {
+            csvResultPrinter.setArgumentName(argumentName);
         }
         return this;
     }
@@ -157,7 +166,11 @@ public class BenchmarkRunner<T> {
     }
 
     public BenchmarkRunner<T> forArguments(List<T> arguments) {
-        List<String> argumentsNames = arguments.stream().map(String::valueOf).collect(Collectors.toList());
+        return forArguments(arguments, String::valueOf);
+    }
+
+    public BenchmarkRunner<T> forArguments(List<T> arguments, Function<T, String> argumentToNameFunction) {
+        List<String> argumentsNames = arguments.stream().map(argumentToNameFunction).collect(Collectors.toList());
         return forArguments(arguments, argumentsNames);
     }
 

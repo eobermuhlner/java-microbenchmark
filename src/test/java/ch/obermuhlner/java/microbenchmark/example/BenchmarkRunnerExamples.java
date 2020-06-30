@@ -23,6 +23,7 @@ public class BenchmarkRunnerExamples {
                 .csvReport("busy.csv")
                 .allocatedMeasureSeconds(0.1)
                 .forLoop(0, 500, 10, i -> i)
+                //.forStream(IntStream.rangeClosed(0, 500).filter(n -> n % 10 == 0).boxed())
                 .benchmark("busy", i -> {
                     busyWait(i);
                 })
