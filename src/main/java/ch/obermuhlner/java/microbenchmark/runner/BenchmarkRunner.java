@@ -16,8 +16,6 @@ import java.util.stream.Stream;
 
 public class BenchmarkRunner {
 
-    public static final double NANOS_PER_SECOND = 1_000_000_000;
-
     private BenchmarkConfig config = new BenchmarkConfig();
 
     public BenchmarkRunner verbose(boolean verbose) {
@@ -94,6 +92,11 @@ public class BenchmarkRunner {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return this;
+    }
+
+    public BenchmarkRunner timeUnit(TimeUnit timeUnit) {
+        config.timeUnit = timeUnit;
         return this;
     }
 

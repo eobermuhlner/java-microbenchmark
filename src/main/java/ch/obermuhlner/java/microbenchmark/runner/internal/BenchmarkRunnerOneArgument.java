@@ -94,6 +94,8 @@ public class BenchmarkRunnerOneArgument<T1> extends AbstractBenchmarkRunner {
     }
 
     private void runSnippets1() {
+        config.resultPrinter.setTimeUnit(config.timeUnit);
+
         config.resultPrinter.printDimensions(1);
         config.resultPrinter.printNames(config.names);
         config.resultPrinter.printArguments(arguments1Names);
@@ -129,6 +131,6 @@ public class BenchmarkRunnerOneArgument<T1> extends AbstractBenchmarkRunner {
     }
 
     private double[] measure(Consumer<T1> snippet, T1 argument, int warmupCount, double warmupTime) {
-        return measure(() -> snippet.accept(argument), warmupCount, warmupTime);
+        return measureNanoseconds(() -> snippet.accept(argument), warmupCount, warmupTime);
     }
 }

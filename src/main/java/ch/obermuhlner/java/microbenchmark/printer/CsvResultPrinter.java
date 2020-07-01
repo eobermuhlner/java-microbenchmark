@@ -1,5 +1,7 @@
 package ch.obermuhlner.java.microbenchmark.printer;
 
+import ch.obermuhlner.java.microbenchmark.runner.TimeUnit;
+
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,6 +16,7 @@ public class CsvResultPrinter implements ResultPrinter {
     private List<String> names;
     private List<String> arguments;
 
+    private TimeUnit timeUnit;
     private Map<List<String>, Double> resultMap = new HashMap<>();
 
     public CsvResultPrinter(PrintWriter out) {
@@ -25,9 +28,17 @@ public class CsvResultPrinter implements ResultPrinter {
     }
 
     @Override
+    public void setTimeUnit(TimeUnit timeUnit) {
+        this.timeUnit = timeUnit;
+    }
+
+    @Override
     public void printDimensions(int count) {
         switch (count) {
             case 1:
+                if (timeUnit != null) {
+                    out.println("# csv2chart.y-axis=" + timeUnit.longUnit);
+                }
                 break;
             case 2:
                 out.println("# csv2chart.chart=heat");
@@ -56,8 +67,8 @@ public class CsvResultPrinter implements ResultPrinter {
     }
 
     @Override
-    public void printBenchmark(String name, String argument, double seconds, double[] allSeconds) {
-        resultMap.put(Arrays.asList(name, argument), seconds);
+    public void printBenchmark(String name, String argument, double elapsed, double[] allElapsed) {
+        resultMap.put(Arrays.asList(name, argument), elapsed);
     }
 
     @Override

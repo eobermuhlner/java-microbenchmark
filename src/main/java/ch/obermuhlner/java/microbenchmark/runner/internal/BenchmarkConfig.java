@@ -4,6 +4,7 @@ import ch.obermuhlner.java.microbenchmark.printer.CompositeResultPrinter;
 import ch.obermuhlner.java.microbenchmark.printer.CsvResultPrinter;
 import ch.obermuhlner.java.microbenchmark.printer.SimpleResultPrinter;
 import ch.obermuhlner.java.microbenchmark.runner.ResultStrategies;
+import ch.obermuhlner.java.microbenchmark.runner.TimeUnit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public class BenchmarkConfig {
     public int runCount = 10;
 
     public List<String> names = new ArrayList<>();
+    public TimeUnit timeUnit = TimeUnit.NanoSeconds;
 
     public Function<double[], Double> resultStrategy = ResultStrategies.AVERAGE_LOWER_HALF;
 

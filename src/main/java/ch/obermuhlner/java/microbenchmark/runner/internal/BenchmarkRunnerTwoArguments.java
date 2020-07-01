@@ -41,6 +41,8 @@ public class BenchmarkRunnerTwoArguments<T1, T2> extends AbstractBenchmarkRunner
             throw new RuntimeException("Can only run exactly 1 two-dimensional benchmark");
         }
 
+        config.resultPrinter.setTimeUnit(config.timeUnit);
+
         config.resultPrinter.printDimensions(2);
         config.resultPrinter.printNames(arguments1Names);
         config.resultPrinter.printArguments(arguments2Names);
@@ -79,6 +81,6 @@ public class BenchmarkRunnerTwoArguments<T1, T2> extends AbstractBenchmarkRunner
     }
 
     private double[] measure(BiConsumer<T1, T2> snippet, T1 argument1, T2 argument2, int warmupCount, double warmupTime) {
-        return measure(() -> snippet.accept(argument1, argument2), warmupCount, warmupTime);
+        return measureNanoseconds(() -> snippet.accept(argument1, argument2), warmupCount, warmupTime);
     }
 }

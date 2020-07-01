@@ -1,5 +1,7 @@
 package ch.obermuhlner.java.microbenchmark.printer;
 
+import ch.obermuhlner.java.microbenchmark.runner.TimeUnit;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +16,13 @@ public class CompositeResultPrinter implements ResultPrinter {
 
     public void addResultPrinter(ResultPrinter resultPrinter) {
         printers.add(resultPrinter);
+    }
+
+    @Override
+    public void setTimeUnit(TimeUnit timeUnit) {
+        for (ResultPrinter printer : printers) {
+            printer.setTimeUnit(timeUnit);
+        }
     }
 
     @Override
@@ -53,9 +62,9 @@ public class CompositeResultPrinter implements ResultPrinter {
     }
 
     @Override
-    public void printBenchmark(String name, String argument, double seconds, double[] allSeconds) {
+    public void printBenchmark(String name, String argument, double elapsed, double[] allElapsed) {
         for (ResultPrinter printer : printers) {
-            printer.printBenchmark(name, argument, seconds, allSeconds);
+            printer.printBenchmark(name, argument, elapsed, allElapsed);
         }
     }
 
