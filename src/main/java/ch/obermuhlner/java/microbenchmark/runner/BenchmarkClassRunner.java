@@ -3,6 +3,8 @@ package ch.obermuhlner.java.microbenchmark.runner;
 import ch.obermuhlner.java.microbenchmark.annotation.Benchmark;
 import ch.obermuhlner.java.microbenchmark.annotation.BenchmarkArgument;
 import ch.obermuhlner.java.microbenchmark.annotation.BenchmarkSuite;
+import ch.obermuhlner.java.microbenchmark.runner.internal.BenchmarkRunnerOneArgument;
+import ch.obermuhlner.java.microbenchmark.runner.internal.BenchmarkRunnerTwoArguments;
 
 import java.lang.reflect.*;
 import java.math.BigDecimal;
@@ -23,17 +25,19 @@ public class BenchmarkClassRunner {
     private static <C> void runClassInternal(Class<C> clazz) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         String suiteName = clazz.getSimpleName();
 
-        BenchmarkRunner benchmarkRunner = new BenchmarkRunner();
+        BenchmarkRunner benchmark = new BenchmarkRunner();
+        BenchmarkRunnerOneArgument benchmarkRunnerOneArgument = null;
+        BenchmarkRunnerTwoArguments benchmarkRunnerTwoArguments = null;
 
         BenchmarkSuite suiteAnnotation = clazz.getAnnotation(BenchmarkSuite.class);
         if (suiteAnnotation != null) {
             if (suiteAnnotation.value() != null && !suiteAnnotation.value().equals("")) {
                 suiteName = suiteAnnotation.value();
             }
-            benchmarkRunner.allocatedMeasureSeconds(suiteAnnotation.allocatedSeconds());
+            benchmark.allocatedMeasureSeconds(suiteAnnotation.allocatedSeconds());
         }
 
-        benchmarkRunner.csvReport(suiteName + ".csv");
+        benchmark.csvReport(suiteName + ".csv");
 
         C instance;
         Constructor<C> constructor = clazz.getConstructor();
@@ -66,18 +70,18 @@ public class BenchmarkClassRunner {
             if (argument == null) {
                 // ignore
             } else if (argument instanceof List) {
-                benchmarkRunner.forArguments((List) argument);
+                benchmarkRunnerOneArgument = benchmark.forArguments((List) argument);
             } else if (argument instanceof Stream) {
-                benchmarkRunner.forStream((Stream) argument);
+                benchmarkRunnerOneArgument = benchmark.forArguments((Stream) argument);
             } else if (argument instanceof Object[]) {
-                benchmarkRunner.forArguments((Object[]) argument);
+                benchmarkRunnerOneArgument = benchmark.forArguments((Object[]) argument);
             } else if (argument.getClass().isArray()) {
                 List<Object> objectArguments = new ArrayList<>();
                 int length = Array.getLength(argument);
                 for (int i = 0; i < length; i ++) {
                     objectArguments.add(Array.get(argument, i));
                 }
-                benchmarkRunner.forArguments(objectArguments);
+                benchmarkRunnerOneArgument = benchmark.forArguments(objectArguments);
             } else {
                 // TODO ignore or exception?
             }
@@ -88,7 +92,7 @@ public class BenchmarkClassRunner {
             if (annotation != null) {
                 switch(sortIndexes.size()) {
                     case 1:
-                        benchmarkRunner.benchmark(method.getName(), arg -> {
+                        benchmarkRunnerOneArgument.benchmark(method.getName(), arg -> {
                             try {
                                 method.invoke(instance, arg);
                             } catch (IllegalAccessException e) {
@@ -99,7 +103,7 @@ public class BenchmarkClassRunner {
                         });
                         break;
                     case 2:
-                        benchmarkRunner.benchmark(method.getName(), (arg1, arg2) -> {
+                        benchmarkRunnerTwoArguments.benchmark(method.getName(), (arg1, arg2) -> {
                             try {
                                 method.invoke(instance, arg1, arg2);
                             } catch (IllegalAccessException e) {
@@ -113,49 +117,12 @@ public class BenchmarkClassRunner {
             }
         }
 
-        benchmarkRunner.run();
-    }
-
-    @BenchmarkSuite(allocatedSeconds = 1)
-    public static class ExampleBenchmark {
-        private BigDecimal value = BigDecimal.valueOf(1.23456);
-        private BigDecimal value2 = BigDecimal.valueOf(9.87654);
-        @BenchmarkArgument
-        public List<BigDecimal> arguments2() {
-            List<BigDecimal> result = new ArrayList<>();
-            BigDecimal i = BigDecimal.valueOf(0);
-            while (i.compareTo(BigDecimal.valueOf(100)) < 0) {
-                result.add(i);
-                i = i.add(BigDecimal.valueOf(0.1));
-            }
-            return result;
+        if (benchmarkRunnerTwoArguments != null) {
+            benchmarkRunnerTwoArguments.run();
+        } else if (benchmarkRunnerOneArgument != null) {
+            benchmarkRunnerOneArgument.run();
+        } else {
+            throw new RuntimeException("No benchmarks to run");
         }
-
-        @Benchmark
-        public void divide(BigDecimal x) throws InterruptedException {
-            value2.divide(value, MathContext.DECIMAL128);
-        }
-    }
-
-
-    @BenchmarkSuite
-    public static class ExampleBenchmark2 {
-        @BenchmarkArgument(1)
-        public List<Integer> arguments1 = Arrays.asList(0, 1, 2, 3, 4);
-
-        @BenchmarkArgument(2)
-        public List<Integer> arguments2() {
-             return Arrays.asList(0, 10, 20);
-        }
-
-        @Benchmark
-        public void sleep(int millis1, int millis2) throws InterruptedException {
-            Thread.sleep(millis1 + millis2);
-        }
-    }
-
-    public static void main(String[] args) {
-        BenchmarkClassRunner.runClass(ExampleBenchmark.class);
-        //BenchmarkClassRunner.runClass(ExampleBenchmark2.class);
     }
 }

@@ -2,56 +2,52 @@ package ch.obermuhlner.java.microbenchmark.example;
 
 import ch.obermuhlner.java.microbenchmark.runner.BenchmarkRunner;
 
-import java.math.BigDecimal;
-
 public class BenchmarkRunnerExamples {
     public static void main(String[] args) {
-        BigDecimal value1 = BigDecimal.valueOf(1.23456);
-        BigDecimal value2 = BigDecimal.valueOf(9.87654);
-
-//        new BenchmarkRunner<Integer>()
+//        new BenchmarkRunner()
 //                .csvReport("const.csv")
-//                .allocatedMeasureSeconds(2)
-//                .forLoop(0, 10, i -> i)
+//                .allocatedMeasureSeconds(1)
+//                .forLoop(0, 10)
 //                .benchmark("const", i -> {
-//                    value2.divide(value1, MathContext.DECIMAL128);
+//                    BigDecimal.valueOf(9.87654).divide(BigDecimal.valueOf(1.23456), MathContext.DECIMAL128);
 //                })
 //                .run();
 
-        new BenchmarkRunner<Integer>()
-                .verbose(true)
-                .csvReport("busy.csv")
+//        new BenchmarkRunner()
+//                .verbose(true)
+//                .csvReport("busy.csv")
+//                .allocatedMeasureSeconds(0.2)
+//                .forLoop(0, 500, 100)
+//                .benchmark("busy", i -> {
+//                    busyWait(i);
+//                })
+//                .run();
+
+        new BenchmarkRunner()
+                .csvReport("sleep.csv")
                 .allocatedMeasureSeconds(0.1)
-                .forLoop(0, 500, 10, i -> i)
-                //.forStream(IntStream.rangeClosed(0, 500).filter(n -> n % 10 == 0).boxed())
-                .benchmark("busy", i -> {
-                    busyWait(i);
+                .forLoop(10, 50)
+                .benchmark("nothing", millis -> {})
+                .benchmark("sleep", millis -> {
+                    try {
+                        Thread.sleep(millis);
+                    } catch (InterruptedException e) {
+                    }
                 })
                 .run();
 
-//        new BenchmarkRunner<Integer>()
-//                .csvReport("sleep.csv")
-//                .forLoop(0, i -> i < 50, i -> i+1)
-//                .benchmark("nothing", millis -> {})
-//                .benchmark("sleep", millis -> {
-//                    try {
-//                        Thread.sleep(millis);
-//                    } catch (InterruptedException e) {
-//                    }
-//                })
-//                .run();
-
-//        new BenchmarkRunner<Integer>()
-//                .csvReport("sleep2.csv")
-//                .forLoop(0, i -> i <= 10, i -> i+1)
-//                .forLoop(0, i -> i <= 10, i -> i+1)
-//                .benchmark("sleep", (millis1, millis2) -> {
-//                    try {
-//                        Thread.sleep(millis1 + millis2);
-//                    } catch (InterruptedException e) {
-//                    }
-//                })
-//                .run();
+        new BenchmarkRunner()
+                .csvReport("sleep2.csv")
+                .allocatedMeasureSeconds(0.1)
+                .forLoop(0, 100, 10)
+                .forLoop(0, 100, 10)
+                .benchmark("sleep", (millis1, millis2) -> {
+                    try {
+                        Thread.sleep(millis1 + millis2);
+                    } catch (InterruptedException e) {
+                    }
+                })
+                .run();
     }
 
     private static void busyWait(long nanos) {

@@ -47,6 +47,9 @@ public class ResultStrategies {
         if (values.length == 0) {
             return 0.0;
         }
+        if (values.length == 1) {
+            return values[0];
+        }
 
         Arrays.sort(values);
 
