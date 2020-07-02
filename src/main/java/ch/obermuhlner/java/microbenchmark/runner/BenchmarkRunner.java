@@ -4,11 +4,14 @@ import ch.obermuhlner.java.microbenchmark.printer.CsvResultPrinter;
 import ch.obermuhlner.java.microbenchmark.printer.SimpleResultPrinter;
 import ch.obermuhlner.java.microbenchmark.runner.internal.BenchmarkConfig;
 import ch.obermuhlner.java.microbenchmark.runner.internal.BenchmarkRunnerOneArgument;
+import ch.obermuhlner.java.microbenchmark.runner.internal.SimpleBenchmarkRunner;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -157,5 +160,20 @@ public class BenchmarkRunner {
 
     public <T> BenchmarkRunnerOneArgument<T> forArguments(List<T> arguments, List<String> argumentsNames) {
         return new BenchmarkRunnerOneArgument<T>(config, arguments, argumentsNames);
+    }
+
+    public double measure(Runnable snippet) {
+        return new SimpleBenchmarkRunner(config)
+                .measure(snippet);
+    }
+
+    public <T> double measure(Consumer<T> snippet, T argument) {
+        return new SimpleBenchmarkRunner(config)
+                .measure(() -> snippet.accept(argument));
+    }
+
+    public <T1, T2> double measure(BiConsumer<T1, T2> snippet, T1 argument1, T2 argument2) {
+        return new SimpleBenchmarkRunner(config)
+                .measure(() -> snippet.accept(argument1, argument2));
     }
 }

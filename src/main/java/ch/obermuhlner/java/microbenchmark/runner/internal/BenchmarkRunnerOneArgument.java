@@ -131,6 +131,6 @@ public class BenchmarkRunnerOneArgument<T1> extends AbstractBenchmarkRunner {
     }
 
     private double[] measure(Consumer<T1> snippet, T1 argument, int warmupCount, double warmupTime) {
-        return measureNanoseconds(() -> snippet.accept(argument), warmupCount, warmupTime);
+        return measure(() -> snippet.accept(argument), warmupCount, warmupTime);
     }
 }

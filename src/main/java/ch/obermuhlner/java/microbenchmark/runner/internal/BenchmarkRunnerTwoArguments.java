@@ -81,6 +81,6 @@ public class BenchmarkRunnerTwoArguments<T1, T2> extends AbstractBenchmarkRunner
     }
 
     private double[] measure(BiConsumer<T1, T2> snippet, T1 argument1, T2 argument2, int warmupCount, double warmupTime) {
-        return measureNanoseconds(() -> snippet.accept(argument1, argument2), warmupCount, warmupTime);
+        return measure(() -> snippet.accept(argument1, argument2), warmupCount, warmupTime);
     }
 }

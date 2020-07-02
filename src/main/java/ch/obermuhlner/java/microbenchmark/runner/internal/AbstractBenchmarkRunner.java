@@ -30,13 +30,13 @@ public class AbstractBenchmarkRunner {
         return new WarmupInfo(warmupCount, warmupAverageTime);
     }
 
-    protected double[] measureNanoseconds(Runnable snippet, int warmupCount, double warmupTime) {
+    protected double[] measure(Runnable snippet, int warmupCount, double warmupTime) {
         if (config.measureFirstTimeOnly || (config.minMeasureCount == 1 && warmupTime >= TimeUnit.Seconds.toNanoSeconds(config.allocatedMeasureSeconds))) {
             config.resultPrinter.printInfoValue("warmupCount", 0);
             config.resultPrinter.printInfoValue("warmupTime", 0);
             config.resultPrinter.printInfoValue("runCountTime", 1);
             config.resultPrinter.printInfoValue("measurementCount", warmupCount);
-            return new double[] { warmupTime };
+            return new double[] { convertToTimeUnit(warmupTime) };
         }
 
         int measurementCount;

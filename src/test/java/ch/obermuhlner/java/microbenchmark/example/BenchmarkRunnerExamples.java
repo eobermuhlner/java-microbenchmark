@@ -10,7 +10,7 @@ public class BenchmarkRunnerExamples {
     public static void main(String[] args) {
 //        new BenchmarkRunner()
 //                .csvReport("const.csv")
-//                .allocatedMeasureSeconds(1)
+//                .allocatedMeasureSeconds(0.1)
 //                .forLoop(0, 10)
 //                .benchmark("const", i -> {
 //                    BigDecimal.valueOf(9.87654).divide(BigDecimal.valueOf(1.23456), MathContext.DECIMAL128);
@@ -27,25 +27,37 @@ public class BenchmarkRunnerExamples {
 //                })
 //                .run();
 
-        new BenchmarkRunner()
-                .csvReport("sleep.csv")
-                .allocatedMeasureSeconds(0.1)
-                .timeUnit(TimeUnit.MicroSeconds)
-                .forLoop(10, 50)
-                .benchmark("nothing", millis -> {})
-                .benchmark("sleep", millis -> {
-                    try {
-                        Thread.sleep(millis);
-                    } catch (InterruptedException e) {
-                    }
-                })
-                .run();
+//        new BenchmarkRunner()
+//                .verbose(true)
+//                .csvReport("nothing.csv")
+//                .forLoop(0, 50)
+//                .benchmark("nothing", x -> {})
+//                .run();
 
 //        new BenchmarkRunner()
-//                .csvReport("sleep2.csv")
+//                .csvReport("sleep.csv")
 //                .allocatedMeasureSeconds(0.1)
-//                .forLoop(0, 100, 10)
-//                .forLoop(0, 100, 10)
+//                //.timeUnit(TimeUnit.MicroSeconds)
+//                .forLoop(0, 50)
+//                .benchmark("sleep", millis -> {
+//                    try {
+//                        Thread.sleep(millis);
+//                    } catch (InterruptedException e) {
+//                    }
+//                })
+//                .benchmark("busy", millis -> {
+//                    busyWait(millis * 1_000_000);
+//                })
+//                .run();
+
+//        new BenchmarkRunner()
+//                .verbose(true)
+//                .csvReport("sleep2.csv")
+//                .allocatedWarmupSeconds(0)
+//                .allocatedMeasureSeconds(0.1)
+//                .timeUnit(TimeUnit.MilliSeconds)
+//                .forLoop(0, 20)
+//                .forLoop(0, 20)
 //                .benchmark("sleep", (millis1, millis2) -> {
 //                    try {
 //                        Thread.sleep(millis1 + millis2);
@@ -53,6 +65,16 @@ public class BenchmarkRunnerExamples {
 //                    }
 //                })
 //                .run();
+
+        double elapsed = new BenchmarkRunner()
+                .timeUnit(TimeUnit.MilliSeconds)
+                .measure(millis -> {
+                    try {
+                        Thread.sleep(millis);
+                    } catch (InterruptedException e) {
+                    }
+                }, 1234);
+        System.out.println("sleep(1234) = " + elapsed + " millis");
     }
 
     private static void busyWait(long nanos) {
