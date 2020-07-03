@@ -94,9 +94,9 @@ multiple times with different argument values.
 This will generate a CSV file with the benchmark measurements
 over the provided arguments.
 
-[example_sleep_0_to_100.csv](test/docu/example_sleep_0_to_100.csv)
+[example_sleep_0_to_100.csv](docu/example_sleep_0_to_100.csv)
 
-![example_sleep_0_to_100](test/docu/example_sleep_0_to_100.png)
+![example_sleep_0_to_100](docu/example_sleep_0_to_100.png)
 
 The next example uses `.forArguments(1, 10, 100, 1000)`
 instead of the `forLoop()` method to provide explicit arguments:
@@ -121,9 +121,9 @@ instead of the `forLoop()` method to provide explicit arguments:
     }
 ```
 
-[example_sleep_1_10_100_1000.csv](test/docu/example_sleep_1_10_100_1000.csv)
+[example_sleep_1_10_100_1000.csv](docu/example_sleep_1_10_100_1000.csv)
 
-![example_sleep_1_10_100_1000](test/docu/example_sleep_1_10_100_1000.png)
+![example_sleep_1_10_100_1000](docu/example_sleep_1_10_100_1000.png)
 
 
 The next example is a real world scenario.
@@ -149,9 +149,9 @@ The benchmark snippet contains only the call to `divide()`.
     }
 ```
 
-[example_BigDecimal_divide_precision_1_to_1000.csv](test/docu/example_BigDecimal_divide_precision_1_to_1000.csv)
+[example_BigDecimal_divide_precision_1_to_1000.csv](docu/example_BigDecimal_divide_precision_1_to_1000.csv)
 
-![example_BigDecimal_divide_precision_1_to_1000](test/docu/example_BigDecimal_divide_precision_1_to_1000.png)
+![example_BigDecimal_divide_precision_1_to_1000](docu/example_BigDecimal_divide_precision_1_to_1000.png)
 
 
 ## Benchmark functions with 2 arguments
