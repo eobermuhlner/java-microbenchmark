@@ -3,7 +3,7 @@ package ch.obermuhlner.java.microbenchmark.runner.internal;
 import ch.obermuhlner.java.microbenchmark.printer.CompositeResultPrinter;
 import ch.obermuhlner.java.microbenchmark.printer.CsvResultPrinter;
 import ch.obermuhlner.java.microbenchmark.printer.SimpleResultPrinter;
-import ch.obermuhlner.java.microbenchmark.runner.ResultStrategies;
+import ch.obermuhlner.java.microbenchmark.runner.ResultCalculators;
 import ch.obermuhlner.java.microbenchmark.runner.TimeUnit;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ public class BenchmarkConfig {
     public int maxWarmupCount = 1_000_000_000;
     public int minMeasureCount = 1;
     public int maxMeasureCount = 1_000_000_000;
-    public long timeoutSeconds = 10;
+    public long timeoutSeconds = 60;
     public boolean measureFirstTimeOnly = false;
 
     public int runCount = 10;
@@ -26,7 +26,7 @@ public class BenchmarkConfig {
     public List<String> names = new ArrayList<>();
     public TimeUnit timeUnit = TimeUnit.NanoSeconds;
 
-    public Function<double[], Double> resultStrategy = ResultStrategies.AVERAGE_LOWER_HALF;
+    public Function<double[], Double> resultCalculator = ResultCalculators.AVERAGE_LOWER_HALF;
 
     public final CompositeResultPrinter resultPrinter;
     public final SimpleResultPrinter simpleResultPrinter = new SimpleResultPrinter();

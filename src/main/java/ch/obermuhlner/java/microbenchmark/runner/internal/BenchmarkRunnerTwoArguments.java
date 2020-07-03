@@ -68,7 +68,7 @@ public class BenchmarkRunnerTwoArguments<T1, T2> extends AbstractBenchmarkRunner
 
                 WarmupInfo warmupInfo = warmupInfos[i+j*arguments1.size()];
                 double[] results = measure(snippet, argument1, argument2, warmupInfo.warmupCount, warmupInfo.warmupTime);
-                double result = config.resultStrategy.apply(results);
+                double result = config.resultCalculator.apply(results);
                 config.resultPrinter.printBenchmark(argument1Name, argument2Name, result, results);
             }
         }

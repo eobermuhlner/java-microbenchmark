@@ -7,8 +7,6 @@ import ch.obermuhlner.java.microbenchmark.runner.internal.BenchmarkRunnerOneArgu
 import ch.obermuhlner.java.microbenchmark.runner.internal.BenchmarkRunnerTwoArguments;
 
 import java.lang.reflect.*;
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -25,7 +23,7 @@ public class BenchmarkClassRunner {
     private static <C> void runClassInternal(Class<C> clazz) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         String suiteName = clazz.getSimpleName();
 
-        BenchmarkRunner benchmark = new BenchmarkRunner();
+        BenchmarkBuilder benchmark = new BenchmarkBuilder();
         BenchmarkRunnerOneArgument benchmarkRunnerOneArgument = null;
         BenchmarkRunnerTwoArguments benchmarkRunnerTwoArguments = null;
 

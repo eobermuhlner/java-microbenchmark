@@ -3,7 +3,7 @@ package ch.obermuhlner.java.microbenchmark.runner;
 import java.util.Arrays;
 import java.util.function.Function;
 
-public class ResultStrategies {
+public class ResultCalculators {
     public static Function<double[], Double> MIN = values -> {
         if (values.length == 0) {
             return 0.0;

@@ -17,69 +17,74 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class BenchmarkRunner {
+public class BenchmarkBuilder {
 
     private BenchmarkConfig config = new BenchmarkConfig();
 
-    public BenchmarkRunner verbose(boolean verbose) {
+    public BenchmarkBuilder verbose(boolean verbose) {
         config.simpleResultPrinter.setVerbose(verbose);
         return this;
     }
 
-    public BenchmarkRunner measureFirstTimeOnly(boolean measureFirstTimeOnly) {
+    public BenchmarkBuilder measureFirstTimeOnly(boolean measureFirstTimeOnly) {
         config.measureFirstTimeOnly = measureFirstTimeOnly;
         return this;
     }
 
-    public BenchmarkRunner allocatedMeasureSeconds(double allocatedSeconds) {
+    public BenchmarkBuilder allocatedMeasureSeconds(double allocatedSeconds) {
         config.allocatedMeasureSeconds = allocatedSeconds;
         return this;
     }
 
-    public BenchmarkRunner allocatedWarmupSeconds(double allocatedWarmupSeconds) {
+    public BenchmarkBuilder allocatedWarmupSeconds(double allocatedWarmupSeconds) {
         config.allocatedWarmupSeconds = allocatedWarmupSeconds;
         return this;
     }
 
-    public BenchmarkRunner warmupCount(int warmupCount) {
+    public BenchmarkBuilder warmupCount(int warmupCount) {
         return minWarmupCount(warmupCount).maxWarmupCount(warmupCount);
     }
 
-    public BenchmarkRunner minWarmupCount(int minWarmupCount) {
+    public BenchmarkBuilder minWarmupCount(int minWarmupCount) {
         config.minWarmupCount = minWarmupCount;
         return this;
     }
 
-    public BenchmarkRunner maxWarmupCount(int maxWarmupCount) {
+    public BenchmarkBuilder maxWarmupCount(int maxWarmupCount) {
         config.maxWarmupCount = maxWarmupCount;
         return this;
     }
 
-    public BenchmarkRunner measureCount(int measureCount) {
+    public BenchmarkBuilder measureCount(int measureCount) {
         return minMeasureCount(measureCount).maxMeasureCount(measureCount);
     }
 
-    public BenchmarkRunner minMeasureCount(int minMeasureCount) {
+    public BenchmarkBuilder minMeasureCount(int minMeasureCount) {
         config.minMeasureCount = minMeasureCount;
         return this;
     }
 
-    public BenchmarkRunner maxMeasureCount(int maxMeasureCount) {
+    public BenchmarkBuilder maxMeasureCount(int maxMeasureCount) {
         config.maxMeasureCount = maxMeasureCount;
         return this;
     }
 
-    public BenchmarkRunner runCount(int runCount) {
+    public BenchmarkBuilder runCount(int runCount) {
         config.runCount = runCount;
         return this;
     }
 
-    public BenchmarkRunner timeoutSeconds(long timeoutSeconds) {
+    public BenchmarkBuilder timeoutSeconds(long timeoutSeconds) {
         config.timeoutSeconds = timeoutSeconds;
         return this;
     }
 
-    public BenchmarkRunner csvReport(String fileName) {
+    public BenchmarkBuilder resultCalculator(Function<double[], Double> resultCalculator) {
+        config.resultCalculator = resultCalculator;
+        return this;
+    }
+
+    public BenchmarkBuilder csvReport(String fileName) {
         try {
             CsvResultPrinter csvResultPrinter = new CsvResultPrinter(new PrintWriter(new BufferedWriter(new FileWriter(fileName))));
             config.resultPrinter.addResultPrinter(csvResultPrinter);
@@ -89,7 +94,7 @@ public class BenchmarkRunner {
         return this;
     }
 
-    public BenchmarkRunner printReport(String fileName) {
+    public BenchmarkBuilder printReport(String fileName) {
         try {
             config.resultPrinter.addResultPrinter(new SimpleResultPrinter(new PrintStream(fileName)));
         } catch (IOException e) {
@@ -98,7 +103,7 @@ public class BenchmarkRunner {
         return this;
     }
 
-    public BenchmarkRunner timeUnit(TimeUnit timeUnit) {
+    public BenchmarkBuilder timeUnit(TimeUnit timeUnit) {
         config.timeUnit = timeUnit;
         return this;
     }

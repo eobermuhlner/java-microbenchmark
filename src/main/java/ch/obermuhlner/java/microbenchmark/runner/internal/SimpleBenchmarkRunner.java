@@ -8,7 +8,7 @@ public class SimpleBenchmarkRunner extends AbstractBenchmarkRunner {
     public double measure(Runnable snippet) {
         AbstractBenchmarkRunner.WarmupInfo warmupInfo = warmup(snippet);
         double[] results = measure(snippet, warmupInfo.warmupCount, warmupInfo.warmupTime);
-        double result = config.resultStrategy.apply(results);
+        double result = config.resultCalculator.apply(results);
         return result;
     }
 }

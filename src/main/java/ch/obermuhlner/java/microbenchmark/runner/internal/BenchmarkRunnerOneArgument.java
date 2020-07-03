@@ -118,7 +118,7 @@ public class BenchmarkRunnerOneArgument<T1> extends AbstractBenchmarkRunner {
                 String argumentName = arguments1Names.get(j);
                 WarmupInfo warmupInfo = warmupInfos[i+j*config.names.size()];
                 double[] results = measure(snippet, argument, warmupInfo.warmupCount, warmupInfo.warmupTime);
-                double result = config.resultStrategy.apply(results);
+                double result = config.resultCalculator.apply(results);
                 config.resultPrinter.printBenchmark(name, argumentName, result, results);
             }
         }
