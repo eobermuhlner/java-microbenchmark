@@ -111,7 +111,7 @@ public class BenchmarkRunnerExamples {
 
     public static void exampleBenchmarkSleep2Dimensions() {
         new BenchmarkBuilder()
-                .csvReport("sleep_2dim_0_to_20.csv")
+                .csvReport("example_sleep_2dim_0_to_20.csv")
                 .allocatedWarmupSeconds(0.01)
                 .allocatedMeasureSeconds(0.1)
                 .timeUnit(TimeUnit.MilliSeconds)
