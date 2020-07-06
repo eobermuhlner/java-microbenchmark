@@ -156,3 +156,32 @@ The benchmark snippet contains only the call to `divide()`.
 
 ## Benchmark functions with 2 arguments
 
+If your snippet needs 2 arguments you can only run benchmark.
+The generated CSV will use the x-axis for one argument
+and the y-axis for the other argument.
+
+With 2 arguments only one benchmark snippet is allowed.
+
+```java
+    public static void exampleBenchmarkSleep2Dimensions() {
+        new BenchmarkBuilder()
+                .csvReport("sleep_2dim_0_to_20.csv")
+                .allocatedWarmupSeconds(0.01)
+                .allocatedMeasureSeconds(0.1)
+                .timeUnit(TimeUnit.MilliSeconds)
+                .forLoop(0, 20)
+                .forLoop(0, 20)
+                .benchmark("sleep", (millis1, millis2) -> {
+                    try {
+                        Thread.sleep(millis1 + millis2);
+                    } catch (InterruptedException e) {
+                    }
+                })
+                .run();
+    }
+```
+
+[sleep_2dim_0_to_20.csv](docu/sleep_2dim_0_to_20.csv)
+
+![sleep_2dim_0_to_20](docu/sleep_2dim_0_to_20.png)
+

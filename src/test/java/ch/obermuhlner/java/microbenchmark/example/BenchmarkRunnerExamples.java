@@ -19,9 +19,10 @@ public class BenchmarkRunnerExamples {
     public static void exampleBenchmarks() {
 //        exampleSimpleMeasure1();
 //        exampleSimpleMeasure2();
-        exampleBenchmarkSleep1();
-        exampleBenchmarkSleep2();
-        exampleBenchmarkBigDecimalDivide();
+//        exampleBenchmarkSleep1();
+//        exampleBenchmarkSleep2();
+//        exampleBenchmarkBigDecimalDivide();
+        exampleBenchmarkSleep2Dimensions();
     }
 
     public static void exampleSimpleMeasure1() {
@@ -104,6 +105,23 @@ public class BenchmarkRunnerExamples {
                 .forLoop(1, 1000, i -> new MathContext(i))
                 .benchmark("divide", mc -> {
                     v1.divide(v7, mc);
+                })
+                .run();
+    }
+
+    public static void exampleBenchmarkSleep2Dimensions() {
+        new BenchmarkBuilder()
+                .csvReport("sleep_2dim_0_to_20.csv")
+                .allocatedWarmupSeconds(0.01)
+                .allocatedMeasureSeconds(0.1)
+                .timeUnit(TimeUnit.MilliSeconds)
+                .forLoop(0, 20)
+                .forLoop(0, 20)
+                .benchmark("sleep", (millis1, millis2) -> {
+                    try {
+                        Thread.sleep(millis1 + millis2);
+                    } catch (InterruptedException e) {
+                    }
                 })
                 .run();
     }
