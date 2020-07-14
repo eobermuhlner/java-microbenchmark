@@ -92,7 +92,13 @@ public class SimpleResultPrinter implements ResultPrinter {
         }
         double stddev = Math.sqrt(sumDiffSquare/(n+1));
 
-        out.println(String.format("%-40s %30s %16.1f %8s (n=%d min=%f max=%f avg=%f median=%f stddev=%f)", name, argument, elapsed, timeUnit.shortUnit, n, min, max, avg, median, stddev));
+        printInfoValue("n", n);
+        printInfoValue("min", min);
+        printInfoValue("max", max);
+        printInfoValue("avg", avg);
+        printInfoValue("median", median);
+        printInfoValue("stddev", stddev);
+        out.println(String.format("%-40s %30s %16.1f %s", name, argument, elapsed, timeUnit.shortUnit));
     }
 
     @Override

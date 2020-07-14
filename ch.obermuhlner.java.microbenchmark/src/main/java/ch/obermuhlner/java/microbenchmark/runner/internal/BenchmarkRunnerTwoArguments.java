@@ -41,13 +41,15 @@ public class BenchmarkRunnerTwoArguments<T1, T2> extends AbstractBenchmarkRunner
             throw new RuntimeException("Can only run exactly 1 two-dimensional benchmark");
         }
 
-        config.resultPrinter.setTimeUnit(config.timeUnit);
+        config.resultPrinter.setTimeUnit(config.getTimeUnit());
 
         config.resultPrinter.printDimensions(2);
         config.resultPrinter.printNames(arguments1Names);
         config.resultPrinter.printArguments(arguments2Names);
 
         BiConsumer<T1, T2> snippet = benchmarkSnippets2.get(0);
+
+        preWarmup(snippet, arguments1.get(0), arguments2.get(0));
 
         WarmupInfo[] warmupInfos = new WarmupInfo[arguments1.size() * arguments2.size()];
 
@@ -67,7 +69,7 @@ public class BenchmarkRunnerTwoArguments<T1, T2> extends AbstractBenchmarkRunner
                 String argument2Name = arguments2Names.get(j);
 
                 WarmupInfo warmupInfo = warmupInfos[i+j*arguments1.size()];
-                double[] results = measure(snippet, argument1, argument2, warmupInfo.warmupCount, warmupInfo.warmupTime);
+                double[] results = measure(snippet, argument1, argument2, config.getPreWarmupCount(), warmupInfo.warmupCount, warmupInfo.warmupTime);
                 double result = config.resultCalculator.apply(results);
                 config.resultPrinter.printBenchmark(argument1Name, argument2Name, result, results);
             }
@@ -76,11 +78,15 @@ public class BenchmarkRunnerTwoArguments<T1, T2> extends AbstractBenchmarkRunner
         config.resultPrinter.printFinished();
     }
 
+    private WarmupInfo preWarmup(BiConsumer<T1, T2> snippet, T1 argument1, T2 argument2) {
+        return warmup(() -> snippet.accept(argument1, argument2));
+    }
+
     private WarmupInfo warmup(BiConsumer<T1, T2> snippet, T1 argument1, T2 argument2) {
         return warmup(() -> snippet.accept(argument1, argument2));
     }
 
-    private double[] measure(BiConsumer<T1, T2> snippet, T1 argument1, T2 argument2, int warmupCount, double warmupTime) {
-        return measure(() -> snippet.accept(argument1, argument2), warmupCount, warmupTime);
+    private double[] measure(BiConsumer<T1, T2> snippet, T1 argument1, T2 argument2, int preWarmupCount, int warmupCount, double warmupTime) {
+        return measure(() -> snippet.accept(argument1, argument2), preWarmupCount, warmupCount, warmupTime);
     }
 }

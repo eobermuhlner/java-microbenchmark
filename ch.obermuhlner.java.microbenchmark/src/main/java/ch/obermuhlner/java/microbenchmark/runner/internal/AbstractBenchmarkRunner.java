@@ -12,15 +12,24 @@ public class AbstractBenchmarkRunner {
         this.config = config;
     }
 
+    protected WarmupInfo preWarmup(Runnable snippet) {
+        if (config.getPreWarmupCount() > 0) {
+            double preWarmupTime = measureNanoseconds(snippet, config.getPreWarmupCount());
+            return new WarmupInfo(config.getPreWarmupCount(), preWarmupTime);
+        }
+
+        return new WarmupInfo(0, 0);
+    }
+
     protected WarmupInfo warmup(Runnable snippet) {
         double firstTime = measureNanosecondsWithTimeout(snippet, 1);
-        if (config.measureFirstTimeOnly || firstTime >= TimeUnit.Seconds.toNanoSeconds(config.allocatedMeasureSeconds)) {
+        if (config.isMeasureFirstTimeOnly() || firstTime >= TimeUnit.Seconds.toNanoSeconds(config.getAllocatedMeasureSeconds())) {
             return new WarmupInfo(1, firstTime);
         }
 
         double warmupSpentTime = firstTime;
         int warmupCount = 1;
-        while (warmupSpentTime < TimeUnit.Seconds.toNanoSeconds(config.allocatedWarmupSeconds) && warmupCount >= config.minWarmupCount && warmupCount < config.maxWarmupCount) {
+        while (warmupSpentTime < TimeUnit.Seconds.toNanoSeconds(config.getAllocatedWarmupSeconds()) && warmupCount >= config.getMinWarmupCount() && warmupCount < config.getMinWarmupCount()) {
             double warmupTime = measureNanoseconds(snippet, 1);
             warmupSpentTime += warmupTime;
             warmupCount++;
@@ -30,23 +39,28 @@ public class AbstractBenchmarkRunner {
         return new WarmupInfo(warmupCount, warmupAverageTime);
     }
 
-    protected double[] measure(Runnable snippet, int warmupCount, double warmupTime) {
-        if (config.measureFirstTimeOnly || (config.minMeasureCount == 1 && warmupTime >= TimeUnit.Seconds.toNanoSeconds(config.allocatedMeasureSeconds))) {
+    protected double[] measure(Runnable snippet, int preWarmupCount, int warmupCount, double warmupTime) {
+        if (preWarmupCount > 0) {
+            config.resultPrinter.printInfoValue("preWarmupCount", preWarmupCount);
+        }
+
+        if (config.isMeasureFirstTimeOnly() || (config.getMinMeasureCount() == 1 && warmupTime >= TimeUnit.Seconds.toNanoSeconds(config.getAllocatedMeasureSeconds()))) {
             config.resultPrinter.printInfoValue("warmupCount", 0);
             config.resultPrinter.printInfoValue("warmupTime", 0);
             config.resultPrinter.printInfoValue("runCountTime", 1);
             config.resultPrinter.printInfoValue("measurementCount", warmupCount);
+            sleep();
             return new double[] { convertToTimeUnit(warmupTime) };
         }
 
         int measurementCount;
         if (warmupTime == 0) {
-            measurementCount = config.maxWarmupCount;
+            measurementCount = config.getMaxWarmupCount();
         } else {
-            measurementCount = (int) (TimeUnit.Seconds.toNanoSeconds(config.allocatedMeasureSeconds) / warmupTime);
+            measurementCount = (int) (TimeUnit.Seconds.toNanoSeconds(config.getAllocatedMeasureSeconds()) / warmupTime);
         }
-        measurementCount = Math.max(config.minMeasureCount, measurementCount);
-        measurementCount = Math.min(config.maxMeasureCount, measurementCount);
+        measurementCount = Math.max(config.getMinMeasureCount(), measurementCount);
+        measurementCount = Math.min(config.getMaxMeasureCount(), measurementCount);
 
         if (measurementCount >= config.runCount) {
             double[] measurements = new double[config.runCount];
@@ -57,6 +71,7 @@ public class AbstractBenchmarkRunner {
             config.resultPrinter.printInfoValue("measurementCount", singleMeasurementCount);
             for (int i = 0; i < config.runCount; i++) {
                 measurements[i] = convertToTimeUnit(measureNanoseconds(snippet, singleMeasurementCount));
+                sleep();
             }
             return measurements;
         } else {
@@ -64,7 +79,18 @@ public class AbstractBenchmarkRunner {
             config.resultPrinter.printInfoValue("warmupTime", warmupTime);
             config.resultPrinter.printInfoValue("runCountTime", 1);
             config.resultPrinter.printInfoValue("measurementCount", measurementCount);
-            return new double[] { convertToTimeUnit(measureNanoseconds(snippet, measurementCount)) };
+            double[] measurement = new double[] { convertToTimeUnit(measureNanoseconds(snippet, measurementCount)) };
+            sleep();
+            return measurement;
+        }
+    }
+
+    private void sleep() {
+        long millis = (long) (config.getAllocatedSleepSeconds() * 1000);
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted");
         }
     }
 
@@ -78,7 +104,7 @@ public class AbstractBenchmarkRunner {
         thread.start();
 
         try {
-            if (latch.await(config.timeoutSeconds, java.util.concurrent.TimeUnit.SECONDS)) {
+            if (latch.await(config.getTimeoutSeconds(), java.util.concurrent.TimeUnit.SECONDS)) {
                 return result.get();
             }
         } catch (InterruptedException e) {
@@ -106,7 +132,7 @@ public class AbstractBenchmarkRunner {
     }
 
     public double convertToTimeUnit(double nanoseconds) {
-        return config.timeUnit.nanosecondsToTimeUnit(nanoseconds);
+        return config.getTimeUnit().nanosecondsToTimeUnit(nanoseconds);
     }
 
     static class WarmupInfo {

@@ -94,7 +94,7 @@ public class BenchmarkRunnerOneArgument<T1> extends AbstractBenchmarkRunner {
     }
 
     private void runSnippets1() {
-        config.resultPrinter.setTimeUnit(config.timeUnit);
+        config.resultPrinter.setTimeUnit(config.getTimeUnit());
 
         config.resultPrinter.printDimensions(1);
         config.resultPrinter.printNames(config.names);
@@ -104,6 +104,7 @@ public class BenchmarkRunnerOneArgument<T1> extends AbstractBenchmarkRunner {
 
         for (int i = 0; i < config.names.size(); i++) {
             Consumer<T1> snippet = benchmarkSnippets1.get(i);
+            preWarmup(snippet, arguments1.get(0));
             for (int j = 0; j < arguments1.size(); j++) {
                 T1 argument = arguments1.get(j);
                 warmupInfos[i+j*config.names.size()] = warmup(snippet, argument);
@@ -117,7 +118,7 @@ public class BenchmarkRunnerOneArgument<T1> extends AbstractBenchmarkRunner {
                 T1 argument = arguments1.get(j);
                 String argumentName = arguments1Names.get(j);
                 WarmupInfo warmupInfo = warmupInfos[i+j*config.names.size()];
-                double[] results = measure(snippet, argument, warmupInfo.warmupCount, warmupInfo.warmupTime);
+                double[] results = measure(snippet, argument, config.getPreWarmupCount(), warmupInfo.warmupCount, warmupInfo.warmupTime);
                 double result = config.resultCalculator.apply(results);
                 config.resultPrinter.printBenchmark(name, argumentName, result, results);
             }
@@ -126,11 +127,15 @@ public class BenchmarkRunnerOneArgument<T1> extends AbstractBenchmarkRunner {
         config.resultPrinter.printFinished();
     }
 
+    private WarmupInfo preWarmup(Consumer<T1> snippet, T1 argument) {
+        return preWarmup(() -> snippet.accept(argument));
+    }
+
     private WarmupInfo warmup(Consumer<T1> snippet, T1 argument) {
         return warmup(() -> snippet.accept(argument));
     }
 
-    private double[] measure(Consumer<T1> snippet, T1 argument, int warmupCount, double warmupTime) {
-        return measure(() -> snippet.accept(argument), warmupCount, warmupTime);
+    private double[] measure(Consumer<T1> snippet, T1 argument, int preWarmupCount, int warmupCount, double warmupTime) {
+        return measure(() -> snippet.accept(argument), preWarmupCount, warmupCount, warmupTime);
     }
 }

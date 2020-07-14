@@ -27,17 +27,27 @@ public class BenchmarkBuilder {
     }
 
     public BenchmarkBuilder measureFirstTimeOnly(boolean measureFirstTimeOnly) {
-        config.measureFirstTimeOnly = measureFirstTimeOnly;
+        config.setMeasureFirstTimeOnly(measureFirstTimeOnly);
         return this;
     }
 
-    public BenchmarkBuilder allocatedMeasureSeconds(double allocatedSeconds) {
-        config.allocatedMeasureSeconds = allocatedSeconds;
+    public BenchmarkBuilder allocatedMeasureSeconds(double allocatedMeasureSeconds) {
+        config.setAllocatedMeasureSeconds(allocatedMeasureSeconds);
         return this;
     }
 
     public BenchmarkBuilder allocatedWarmupSeconds(double allocatedWarmupSeconds) {
-        config.allocatedWarmupSeconds = allocatedWarmupSeconds;
+        config.setAllocatedWarmupSeconds(allocatedWarmupSeconds);
+        return this;
+    }
+
+    public BenchmarkBuilder allocatedSleepSeconds(double allocatedSleepSeconds) {
+        config.setAllocatedSleepSeconds(allocatedSleepSeconds);
+        return this;
+    }
+
+    public BenchmarkBuilder preWarmupCount(int preWarmupCount) {
+        config.setPreWarmupCount(preWarmupCount);
         return this;
     }
 
@@ -46,12 +56,12 @@ public class BenchmarkBuilder {
     }
 
     public BenchmarkBuilder minWarmupCount(int minWarmupCount) {
-        config.minWarmupCount = minWarmupCount;
+        config.setMinWarmupCount(minWarmupCount);
         return this;
     }
 
     public BenchmarkBuilder maxWarmupCount(int maxWarmupCount) {
-        config.maxWarmupCount = maxWarmupCount;
+        config.setMaxWarmupCount(maxWarmupCount);
         return this;
     }
 
@@ -60,12 +70,12 @@ public class BenchmarkBuilder {
     }
 
     public BenchmarkBuilder minMeasureCount(int minMeasureCount) {
-        config.minMeasureCount = minMeasureCount;
+        config.setMinMeasureCount(minMeasureCount);
         return this;
     }
 
     public BenchmarkBuilder maxMeasureCount(int maxMeasureCount) {
-        config.maxMeasureCount = maxMeasureCount;
+        config.setMaxMeasureCount(maxMeasureCount);
         return this;
     }
 
@@ -75,7 +85,7 @@ public class BenchmarkBuilder {
     }
 
     public BenchmarkBuilder timeoutSeconds(long timeoutSeconds) {
-        config.timeoutSeconds = timeoutSeconds;
+        config.setTimeoutSeconds(timeoutSeconds);
         return this;
     }
 
@@ -104,7 +114,7 @@ public class BenchmarkBuilder {
     }
 
     public BenchmarkBuilder timeUnit(TimeUnit timeUnit) {
-        config.timeUnit = timeUnit;
+        config.setTimeUnit(timeUnit);
         return this;
     }
 

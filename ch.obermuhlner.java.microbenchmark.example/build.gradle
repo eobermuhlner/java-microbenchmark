@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'ch.obermuhlner'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+mainClassName='ch.obermuhlner.java.microbenchmark.example.BenchmarkRunnerExamples'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':ch.obermuhlner.java.microbenchmark')
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation group: 'ch.obermuhlner', name: 'big-math', version: '2.3.0'
+}

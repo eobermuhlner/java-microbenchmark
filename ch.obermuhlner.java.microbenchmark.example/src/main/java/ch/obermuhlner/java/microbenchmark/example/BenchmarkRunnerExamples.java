@@ -3,6 +3,7 @@ package ch.obermuhlner.java.microbenchmark.example;
 import ch.obermuhlner.java.microbenchmark.runner.BenchmarkBuilder;
 import ch.obermuhlner.java.microbenchmark.runner.ResultCalculators;
 import ch.obermuhlner.java.microbenchmark.runner.TimeUnit;
+import ch.obermuhlner.math.big.BigDecimalMath;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -11,9 +12,9 @@ import static java.math.BigDecimal.*;
 
 public class BenchmarkRunnerExamples {
     public static void main(String[] args) {
-        exampleBenchmarks();
-
+        //exampleBenchmarks();
         //experimentalBenchmarks();
+        calibrateBenchmarks();
     }
 
     public static void exampleBenchmarks() {
@@ -111,12 +112,11 @@ public class BenchmarkRunnerExamples {
 
     public static void exampleBenchmarkSleep2Dimensions() {
         new BenchmarkBuilder()
-                .csvReport("example_sleep_2dim_0_to_20.csv")
-                .allocatedWarmupSeconds(0.01)
+                .csvReport("example_sleep_2dim_0_to_50_0_to_50.csv")
                 .allocatedMeasureSeconds(0.1)
                 .timeUnit(TimeUnit.MilliSeconds)
-                .forLoop(0, 20)
-                .forLoop(0, 20)
+                .forLoop(0, 50)
+                .forLoop(0, 10)
                 .benchmark("sleep", (millis1, millis2) -> {
                     try {
                         Thread.sleep(millis1 + millis2);
@@ -196,19 +196,63 @@ public class BenchmarkRunnerExamples {
 //                    value1.divide(x, MathContext.DECIMAL128);
 //                })
 //                .run();
+    }
 
-        BigDecimal v1 = valueOf(1);
-        BigDecimal v7 = valueOf(7);
-        MathContext mc1000 = new MathContext(1000);
+    public static void calibrateBenchmarks() {
+        MathContext mc = new MathContext(1000);
         new BenchmarkBuilder()
                 .csvReport("calibrate_warmup.csv")
-                .warmupCount(0)
-                .measureCount(100)
-                .resultCalculator(ResultCalculators.AVERAGE)
-                .forLoop(0, 10000)
-                .benchmark("divide", i -> {
-                    v1.divide(v7, mc1000);
+                .preWarmupCount(5)
+                .measureFirstTimeOnly(true)
+                .allocatedSleepSeconds(0.1)
+                .resultCalculator(ResultCalculators.MEDIAN)
+                .forLoop(0, 2000)
+                .benchmark("piChudnovski", i -> {
+                    piChudnovski(mc);
                 })
                 .run();
+    }
+
+
+    private static BigDecimal piChudnovski(MathContext mathContext) {
+        MathContext mc = new MathContext(mathContext.getPrecision() + 10, mathContext.getRoundingMode());
+
+        final BigDecimal value24 = BigDecimal.valueOf(24);
+        final BigDecimal value640320 = BigDecimal.valueOf(640320);
+        final BigDecimal value13591409 = BigDecimal.valueOf(13591409);
+        final BigDecimal value545140134 = BigDecimal.valueOf(545140134);
+        final BigDecimal valueDivisor = value640320.pow(3).divide(value24, mc);
+
+        BigDecimal sumA = BigDecimal.ONE;
+        BigDecimal sumB = BigDecimal.ZERO;
+
+        BigDecimal a = BigDecimal.ONE;
+        long dividendTerm1 = 5; // -(6*k - 5)
+        long dividendTerm2 = -1; // 2*k - 1
+        long dividendTerm3 = -1; // 6*k - 1
+        BigDecimal kPower3 = BigDecimal.ZERO;
+
+        long iterationCount = (mc.getPrecision()+13) / 14;
+        for (long k = 1; k <= iterationCount; k++) {
+            BigDecimal valueK = BigDecimal.valueOf(k);
+            dividendTerm1 += -6;
+            dividendTerm2 += 2;
+            dividendTerm3 += 6;
+            BigDecimal dividend = BigDecimal.valueOf(dividendTerm1).multiply(BigDecimal.valueOf(dividendTerm2)).multiply(BigDecimal.valueOf(dividendTerm3));
+            kPower3 = valueK.pow(3);
+            BigDecimal divisor = kPower3.multiply(valueDivisor, mc);
+            a = a.multiply(dividend).divide(divisor, mc);
+            BigDecimal b = valueK.multiply(a, mc);
+
+            sumA = sumA.add(a);
+            sumB = sumB.add(b);
+        }
+
+        final BigDecimal value426880 = BigDecimal.valueOf(426880);
+        final BigDecimal value10005 = BigDecimal.valueOf(10005);
+        final BigDecimal factor = value426880.multiply(BigDecimalMath.sqrt(value10005, mc));
+        BigDecimal pi = factor.divide(value13591409.multiply(sumA, mc).add(value545140134.multiply(sumB, mc)), mc);
+
+        return BigDecimalMath.round(pi, mathContext);
     }
 }
