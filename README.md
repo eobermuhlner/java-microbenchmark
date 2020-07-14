@@ -107,9 +107,9 @@ new BenchmarkBuilder()
 This will generate a CSV file with the benchmark measurements
 over the provided arguments.
 
-[example_sleep_0_to_100.csv](docu/example_sleep_0_to_100.csv)
+[example_sleep_0_to_100.csv](ch.obermuhlner.java.microbenchmark.example/docu/example_sleep_0_to_100.csv)
 
-![example_sleep_0_to_100](docu/example_sleep_0_to_100.png)
+![example_sleep_0_to_100](ch.obermuhlner.java.microbenchmark.example/docu/example_sleep_0_to_100.png)
 
 The next example uses `.forArguments(1, 10, 100, 1000)`
 instead of the `forLoop()` method to provide explicit arguments:
@@ -132,9 +132,9 @@ new BenchmarkBuilder()
         .run();
 ```
 
-[example_sleep_1_10_100_1000.csv](docu/example_sleep_1_10_100_1000.csv)
+[example_sleep_1_10_100_1000.csv](ch.obermuhlner.java.microbenchmark.example/docu/example_sleep_1_10_100_1000.csv)
 
-![example_sleep_1_10_100_1000](docu/example_sleep_1_10_100_1000.png)
+![example_sleep_1_10_100_1000](ch.obermuhlner.java.microbenchmark.example/docu/example_sleep_1_10_100_1000.png)
 
 
 The next example is a real world scenario.
@@ -158,9 +158,9 @@ new BenchmarkBuilder()
         .run();
 ```
 
-[example_BigDecimal_divide_precision_1_to_1000.csv](docu/example_BigDecimal_divide_precision_1_to_1000.csv)
+[example_BigDecimal_divide_precision_1_to_1000.csv](ch.obermuhlner.java.microbenchmark.example/docu/example_BigDecimal_divide_precision_1_to_1000.csv)
 
-![example_BigDecimal_divide_precision_1_to_1000](docu/example_BigDecimal_divide_precision_1_to_1000.png)
+![example_BigDecimal_divide_precision_1_to_1000](ch.obermuhlner.java.microbenchmark.example/docu/example_BigDecimal_divide_precision_1_to_1000.png)
 
 
 ## Benchmark functions with 2 arguments
@@ -188,7 +188,7 @@ new BenchmarkBuilder()
         .run();
 ```
 
-[example_sleep_2dim_0_to_20.csv](docu/example_sleep_2dim_0_to_20.csv)
+[example_sleep_2dim_0_to_20.csv](ch.obermuhlner.java.microbenchmark.example/docu/example_sleep_2dim_0_to_20.csv)
 
-![example_sleep_2dim_0_to_20](docu/example_sleep_2dim_0_to_20.png)
+![example_sleep_2dim_0_to_20](ch.obermuhlner.java.microbenchmark.example/docu/example_sleep_2dim_0_to_20.png)
 
